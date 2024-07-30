@@ -2,4 +2,7 @@ streamlit
 simpy
 numpy
 pandas
-altair
+matplotlib
+seaborn
+scipy
+graphviz
