@@ -1,0 +1,45 @@
+sim_apps/
+│
+├── main.py
+├── requirements.txt
+├── README.md
+│
+├── pages/
+│   ├── __init__.py
+│   ├── home.py
+│   ├── theory.py
+│   ├── quiz.py
+│   ├── project_guidelines.py
+│   └── interactive_simulation.py
+│
+├── simulations/
+│   ├── __init__.py
+│   ├── call_center.py
+│   ├── food_truck.py
+│   └── simulation_engine.py
+│
+├── visualizations/
+│   ├── __init__.py
+│   ├── animation.py
+│   ├── charts.py
+│   └── real_time_stats.py
+│
+├── data/
+│   ├── __init__.py
+│   ├── data_manager.py
+│   └── export.py
+│
+├── utils/
+│   ├── __init__.py
+│   ├── helpers.py
+│   └── config.py
+│
+├── static/
+│   ├── css/
+│   ├── js/
+│   └── images/
+│
+└── tests/
+    ├── __init__.py
+    ├── test_simulations.py
+    └── test_visualizations.py

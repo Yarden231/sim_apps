@@ -1,0 +1,30 @@
+sim_apps/
+│
+├── main.py
+├── requirements.txt
+├── README.md
+│
+├── pages/
+│   ├── __init__.py
+│   ├── home.py
+│   ├── theory.py
+│   ├── quiz.py
+│   └── project_guidelines.py
+│
+├── simulations/
+│   ├── __init__.py
+│   ├── call_center.py
+│   ├── food_truck/
+│   │   ├── __init__.py
+│   │   ├── simulation.py
+│   │   ├── food_truck.py
+│   │   ├── customer.py
+│   │   ├── sampling.py
+│   │   ├── visualizations.py
+│   │   └── utils.py
+│   └── food_truck.py
+│
+├── labs/
+│   └── theory_lab.py
+│
+└── utils.py
