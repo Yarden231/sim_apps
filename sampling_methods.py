@@ -28,7 +28,7 @@ def sample_acceptance_rejection():
             return x
 
 def plot_histogram(samples, title, distribution_func=None, true_density=None):
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(6, 3))  # Reduce the size of the plots
     n, bins, _ = ax.hist(samples, bins=30, density=True, alpha=0.7, label='Sampled Data')
     ax.set_title(f"{title} (Number of samples: {len(samples)})")
     ax.set_xlabel("Value")
@@ -45,23 +45,66 @@ def plot_histogram(samples, title, distribution_func=None, true_density=None):
     ax.legend()
     return fig
 
-def run_sampling(sampling_function, num_samples, update_interval, title, progress_bar, plot_placeholder, distribution_func=None, true_density=None):
+def plot_boxplot(samples, title):
+    fig, ax = plt.subplots(figsize=(6, 3))  # Reduce the size of the plots
+    ax.boxplot(samples, vert=False)
+    ax.set_title(f"{title} - Boxplot")
+    ax.set_xlabel("Value")
+    return fig
+
+def display_statistics(samples):
+    mean = np.mean(samples)
+    median = np.median(samples)
+    std_dev = np.std(samples)
+    min_val = np.min(samples)
+    max_val = np.max(samples)
+    
+    st.write(f"**Mean:** {mean:.2f}")
+    st.write(f"**Median:** {median:.2f}")
+    st.write(f"**Standard Deviation:** {std_dev:.2f}")
+    st.write(f"**Minimum Value:** {min_val:.2f}")
+    st.write(f"**Maximum Value:** {max_val:.2f}")
+
+def run_sampling(sampling_function, num_samples, update_interval, title, progress_bar, plot_placeholder, boxplot_placeholder, stats_placeholder, print_samples, distribution_func=None, true_density=None):
     samples = []
     for i in range(num_samples):
         samples.append(sampling_function())
         if (i + 1) % update_interval == 0 or i == num_samples - 1:
-            fig = plot_histogram(samples, title, distribution_func, true_density)
-            plot_placeholder.pyplot(fig)
-            plt.close(fig)
+            # Update histograms and boxplots side by side
+            with plot_placeholder.container():
+                col1, col2 = st.columns(2)
+                with col1:
+                    fig = plot_histogram(samples, title, distribution_func, true_density)
+                    st.pyplot(fig)
+                    plt.close(fig)
+                with col2:
+                    boxplot_fig = plot_boxplot(samples, title)
+                    st.pyplot(boxplot_fig)
+                    plt.close(boxplot_fig)
+
+            # Update statistics
+            stats_placeholder.empty()
+            with stats_placeholder:
+                display_statistics(samples)
+            
+            # Print sample values
+            if print_samples:
+                st.write(f"**Sample values (first {min(10, len(samples))} values):** {samples[:10]}")
+        
         progress_bar.progress((i + 1) / num_samples)
 
 def show_sampling_methods():
     st.title("הדגמה של שיטות דגימה שונות")
 
+    st.write("בדף זה נלמד על שיטות דגימה שונות, ונראה דוגמאות כיצד ניתן לייצר דגימות באמצעות Python.")
+
     num_samples = st.sidebar.slider("מספר דגימות", 100, 10000, 1000)
     update_interval = st.sidebar.slider("תדירות עדכון (מספר דגימות)", 1, 100, 10)
 
     st.header("1. התפלגות אחידה")
+    st.write("""
+    ההתפלגות האחידה היא אחת ההתפלגויות הבסיסיות ביותר. כל ערך בטווח `[a, b]` יש לו אותה הסתברות להופיע.
+    """)
     st.latex(r"f(x) = \frac{1}{b-a}, \quad a \leq x \leq b")
     a = st.slider("ערך מינימלי (a)", 0.0, 1.0, 0.0)
     b = st.slider("ערך מקסימלי (b)", a + 0.1, 1.0, 1.0)
@@ -74,10 +117,15 @@ def show_sampling_methods():
     if st.button("התחל דגימה מהתפלגות אחידה"):
         progress_bar = st.progress(0)
         plot_placeholder = st.empty()
+        boxplot_placeholder = st.empty()
+        stats_placeholder = st.empty()
         true_density = lambda x: np.ones_like(x) / (b - a)
-        run_sampling(lambda: sample_uniform(a, b), num_samples, update_interval, "Uniform Distribution", progress_bar, plot_placeholder, true_density=true_density)
+        run_sampling(lambda: sample_uniform(a, b), num_samples, update_interval, "Uniform Distribution", progress_bar, plot_placeholder, boxplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
 
     st.header("2. התפלגות מעריכית")
+    st.write("""
+    ההתפלגות המעריכית מתארת את הזמן שחולף עד להתרחשות אירוע בפועל במערכת בה האירועים מתרחשים בקצב קבוע.
+    """)
     st.latex(r"f(x) = \lambda e^{-\lambda x}, \quad x \geq 0")
     lambda_param = st.slider("פרמטר למבדא", 0.1, 5.0, 1.0)
     
@@ -89,10 +137,15 @@ def show_sampling_methods():
     if st.button("התחל דגימה מהתפלגות מעריכית"):
         progress_bar = st.progress(0)
         plot_placeholder = st.empty()
+        boxplot_placeholder = st.empty()
+        stats_placeholder = st.empty()
         true_density = lambda x: lambda_param * np.exp(-lambda_param * x)
-        run_sampling(lambda: sample_exponential(lambda_param), num_samples, update_interval, "Exponential Distribution", progress_bar, plot_placeholder, true_density=true_density)
+        run_sampling(lambda: sample_exponential(lambda_param), num_samples, update_interval, "Exponential Distribution", progress_bar, plot_placeholder, boxplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
 
     st.header("3. התפלגות מורכבת")
+    st.write("""
+    התפלגות מורכבת זו משלבת שתי התפלגויות נורמליות עם ממוצעים שונים. זו דוגמה להתפלגות מרובת שיאים.
+    """)
     st.latex(r"f(x) = 0.2 \cdot N(0, 1) + 0.8 \cdot N(3, 1)")
     
     st.code("""
@@ -103,10 +156,15 @@ def show_sampling_methods():
     if st.button("התחל דגימה מהתפלגות מורכבת"):
         progress_bar = st.progress(0)
         plot_placeholder = st.empty()
+        boxplot_placeholder = st.empty()
+        stats_placeholder = st.empty()
         true_density = lambda x: 0.2 * stats.norm.pdf(x, 0, 1) + 0.8 * stats.norm.pdf(x, 3, 1)
-        run_sampling(sample_composite_distribution, num_samples, update_interval, "Composite Distribution", progress_bar, plot_placeholder, true_density=true_density)
+        run_sampling(sample_composite_distribution, num_samples, update_interval, "Composite Distribution", progress_bar, plot_placeholder, boxplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
 
     st.header("4. שיטת הקבלה-דחייה")
+    st.write("""
+    שיטת הקבלה-דחייה היא טכניקה לייצור דגימות מהתפלגות מסובכת על ידי שימוש בהתפלגות קלה יותר לייצור דגימות.
+    """)
     st.latex(r"f(x) = 3x^2, \quad 0 \leq x \leq 1")
     
     st.code("""
@@ -123,7 +181,9 @@ def show_sampling_methods():
     if st.button("התחל דגימה בשיטת הקבלה-דחייה"):
         progress_bar = st.progress(0)
         plot_placeholder = st.empty()
-        run_sampling(sample_acceptance_rejection, num_samples, update_interval, "Acceptance-Rejection Method", progress_bar, plot_placeholder, distribution_func=f)
+        boxplot_placeholder = st.empty()
+        stats_placeholder = st.empty()
+        run_sampling(sample_acceptance_rejection, num_samples, update_interval, "Acceptance-Rejection Method", progress_bar, plot_placeholder, boxplot_placeholder, stats_placeholder, print_samples=True, distribution_func=f)
 
 if __name__ == "__main__":
     show_sampling_methods()
