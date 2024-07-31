@@ -1,8 +1,8 @@
 import streamlit as st
 
-# Set page config at the very top of the script
+# Set page config without the theme argument
 st.set_page_config(
-    page_title="פלטפורמת קורס סימולציה",
+    page_title="Simulation Course Platform",
     page_icon=":bar_chart:",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -14,7 +14,7 @@ from theory import show as show_theory
 from call_center import show as show_call_center
 from food_truck import run_simulation, run_simulation_with_speed
 from logger import EventLogger
-from visualizations import  show_food_truck
+from visualizations import show_food_truck
 from sampling_methods import show_sampling_methods
 
 
@@ -28,24 +28,27 @@ def main():
         """
     st.markdown(hide_menu_style, unsafe_allow_html=True)
 
-    # Sidebar styling
+    # Sidebar and content styling
     st.markdown(
         """
         <style>
+        body {
+            background-color: #654321;  /* צבע רקע של הדף */
+            color: #FFFFFF;  /* צבע טקסט של הדף */
+        }
+
         .sidebar .sidebar-content {
-            background-color: #2E4057;
-            color: #E8EEF2;
+            background-color: #8B4513;  /* צבע רקע של הסיידבר */
+            color: #FFFFFF;  /* צבע טקסט בסיידבר */
         }
-        .sidebar-nav {
-            padding-top: 20px;
-        }
+
         .stButton>button {
             width: 100%;
-            background-color: #66A182;
+            background-color: #D2B48C;  /* צבע רקע של הכפתור */
             border: none;
-            color: #E8EEF2;
+            color: #654321;  /* צבע טקסט של הכפתור */
             padding: 12px 20px;
-            text-align: right;
+            text-align: center;
             text-decoration: none;
             display: inline-block;
             font-size: 16px;
@@ -54,9 +57,21 @@ def main():
             border-radius: 8px;
             transition-duration: 0.3s;
         }
+
         .stButton>button:hover {
-            background-color: #7FB69E;
+            background-color: #C1A378;  /* צבע רקע של הכפתור במעבר עכבר */
         }
+
+        .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
+            color: #FFFFFF;  /* צבע טקסט של כותרות */
+        }
+
+        .stMarkdown p {
+            color: #FFFFFF;  /* צבע טקסט של פסקאות */
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
         </style>
         """,
         unsafe_allow_html=True,
