@@ -9,7 +9,6 @@ class Employee:
         self.env = env
         self.id = id
         self.busy = False
-
     def start_call(self):
         self.busy = True
 
