@@ -118,9 +118,10 @@ def run_simulation(num_employees, customer_interval, call_duration_mean, simulat
     for step in range(simulation_time):
         env.run(until=step + 1)  # Step simulation one unit of time
 
-        # Update real-time plot
+        # Update real-time plot in a single placeholder (chart refreshes in place)
         if step < len(call_center.queue_lengths):  # Ensure that the queue_lengths list has enough data
             chart = plot_real_time_queues(call_center, step)
+            real_time_chart.empty()  # Clear the placeholder before updating
             real_time_chart.plotly_chart(chart, use_container_width=True)
 
         # Update progress bar
@@ -147,7 +148,7 @@ def show():
     if st.button("הפעל סימולציה"):
         # Create placeholders for progress and real-time charts
         progress_placeholder = st.empty()
-        real_time_chart = st.empty()
+        real_time_chart = st.empty()  # Create one placeholder for real-time chart
 
         st.write("מריץ סימולציה בזמן אמת...")
 
@@ -161,6 +162,4 @@ def show():
         final_chart = plot_queue_sizes_over_time(call_center, simulation_time)
         st.plotly_chart(final_chart, use_container_width=True)
 
-# Ensure the app runs directly
-if __name__ == "__main__":
-    show()
+
