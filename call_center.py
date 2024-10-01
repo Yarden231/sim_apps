@@ -92,32 +92,24 @@ def run_simulation(num_employees, customer_interval, call_duration_mean, simulat
     return avg_wait, call_center.queue_lengths, employee_utilization_percentages
 
 def update_real_time_chart(call_center, step, chart_placeholder):
-    # Ensure that queue_lengths and employee_utilization have data to plot
-    if len(call_center.queue_lengths) == 0 or len(call_center.employee_utilization) == 0:
-        return  # No data to plot yet
-
     # Plot real-time queue length and employee utilization
     time_points = list(range(step + 1))
     
-    # Real-time queue length and utilization
+    # Real-time queue length
     queue_lengths = call_center.queue_lengths[:step+1]
     employee_utilization = [util * 100 for util in call_center.employee_utilization[:step+1]]
 
-    # Ensure the lengths of time_points, queue_lengths, and employee_utilization match
-    if len(time_points) == len(queue_lengths) and len(queue_lengths) == len(employee_utilization):
-        plt.figure(figsize=(14, 4))
-        plt.plot(time_points, queue_lengths, label='אורך תור (Queue Length)')
-        plt.plot(time_points, employee_utilization, label='ניצולת עובדים (%)')
-        plt.xlabel('זמן (Time)')
-        plt.ylabel('ערך (Value)')
-        plt.title(f'תור וניצולת עובדים בזמן אמת בשלב {step}')
-        plt.legend()
-        chart_placeholder.pyplot(plt.gcf())
-        plt.clf()
+    plt.figure(figsize=(14, 4))
+    plt.plot(time_points, queue_lengths, label='אורך תור (Queue Length)')
+    plt.plot(time_points, employee_utilization, label='ניצולת עובדים (%)')
+    plt.xlabel('זמן (Time)')
+    plt.ylabel('ערך (Value)')
+    plt.title(f'תור וניצולת עובדים בזמן אמת בשלב {step}')
+    plt.legend()
+    chart_placeholder.pyplot(plt.gcf())
+    plt.clf()
 
-def plot_final_metrics(queue_lengths, employee_utilization):
-    # Use the actual length of queue_lengths to determine the time points
-    simulation_time = len(queue_lengths)
+def plot_final_metrics(queue_lengths, employee_utilization, simulation_time):
     time_points = list(range(simulation_time))
 
     # Plot Queue Length Over Time
@@ -172,7 +164,7 @@ def show():
         st.write("### אורך התור וניצולת עובדים לאורך זמן")
 
         # Plot the final metrics
-        plot_final_metrics(queue_lengths, employee_utilization)
+        plot_final_metrics(queue_lengths, employee_utilization, simulation_time)
 
 # This makes sure the app runs only when this file is executed directly
 if __name__ == "__main__":
