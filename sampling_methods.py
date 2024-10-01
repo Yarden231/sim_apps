@@ -106,7 +106,8 @@ def show_sampling_methods():
     if 'selected_sampling' not in st.session_state:
         st.session_state.selected_sampling = None
 
-    num_samples = st.sidebar.slider("מספר דגימות", 100, 10000, 1000)
+    # Add slider to select the number of samples dynamically
+    num_samples = st.sidebar.slider("מספר דגימות", min_value=100, max_value=10000, value=1000, step=100)
     update_interval = st.sidebar.slider("תדירות עדכון (מספר דגימות)", 1, 100, 10)
 
     st.header("בחר שיטת דגימה")
