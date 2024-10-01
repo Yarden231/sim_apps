@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 from utils import set_rtl
+from utils import set_ltr_sliders
 
 # Call the set_rtl function to apply RTL styles
 set_rtl()
@@ -78,31 +79,41 @@ def display_statistics(samples):
     st.write(f"**Maximum Value:** {max_val:.2f}")
 
 def run_sampling(sampling_function, num_samples, update_interval, title, progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples, distribution_func=None, true_density=None):
-    # Instead of sampling one by one, generate all at once for efficiency
-    samples = sampling_function(num_samples)
+    # Generate all samples at once
+    all_samples = sampling_function(num_samples)
     
-    # Update histograms and QQ plots side by side
-    with plot_placeholder.container():
-        col1, col2 = st.columns(2)
-        with col1:
-            fig = plot_histogram(samples, title, distribution_func, true_density)
-            st.pyplot(fig)
-            plt.close(fig)
-        with col2:
-            qqplot_fig = plot_qqplot(samples, title)
-            st.pyplot(qqplot_fig)
-            plt.close(qqplot_fig)
+    # Simulate real-time updates by splitting samples into batches
+    samples = []
+    for i in range(0, num_samples, update_interval):
+        batch_samples = all_samples[i:i+update_interval]
+        samples.extend(batch_samples)
+        
+        # Update histograms and QQ plots side by side
+        with plot_placeholder.container():
+            col1, col2 = st.columns(2)
+            with col1:
+                fig = plot_histogram(samples, title, distribution_func, true_density)
+                st.pyplot(fig)
+                plt.close(fig)
+            with col2:
+                qqplot_fig = plot_qqplot(samples, title)
+                st.pyplot(qqplot_fig)
+                plt.close(qqplot_fig)
 
-    # Update statistics
-    stats_placeholder.empty()
-    with stats_placeholder:
-        display_statistics(samples)
-    
-    # Print sample values
-    if print_samples:
-        st.write(f"**Sample values (first {min(10, len(samples))} values):** {samples[:10]}")
-    
-    progress_bar.progress(1.0)  # Set progress to 100% after sampling
+        # Update statistics
+        stats_placeholder.empty()
+        with stats_placeholder:
+            display_statistics(samples)
+        
+        # Print sample values
+        if print_samples:
+            st.write(f"**Sample values (first {min(10, len(samples))} values):** {samples[:10]}")
+        
+        # Simulate progress in real-time
+        progress_bar.progress((i + update_interval) / num_samples)
+        
+        # Delay to simulate real-time sampling (optional)
+        st.sleep(0.1)
 
 def show_sampling_methods():
     st.title("הדגמה של שיטות דגימה שונות")
@@ -118,7 +129,7 @@ def show_sampling_methods():
     update_interval = st.slider("תדירות עדכון (מספר דגימות)", 1, 100, 10)
 
     st.header("בחר שיטת דגימה")
-
+    set_ltr_sliders() 
     if st.button("התפלגות אחידה"):
         st.session_state.selected_sampling = 'uniform'
     if st.button("התפלגות מעריכית"):
