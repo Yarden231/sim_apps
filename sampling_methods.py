@@ -37,7 +37,7 @@ def f(x):
 
 def plot_histogram(samples, title, distribution_func=None, true_density=None):
     fig, ax = plt.subplots(figsize=(6, 4))  # Fixed figure size
-    ax.hist(samples, bins=30, density=True, alpha=0.7, label='Sampled Data')
+    ax.hist(samples, bins=100, density=True, alpha=0.7, label='Sampled Data')
     ax.set_title(f"{title} (Number of samples: {len(samples)})")
     ax.set_xlabel("Value")
     ax.set_ylabel("Density")
