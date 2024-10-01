@@ -1,129 +1,119 @@
 import simpy
 import numpy as np
-from utils import set_rtl
+import streamlit as st
+import pandas as pd
+import plotly.graph_objs as go
+from food_truck import run_simulation_with_speed  # Assuming this is the step-by-step simulation function
+from logger import EventLogger  # Assuming EventLogger handles logging of events
+from utils import set_rtl  # RTL setting function
 
 # Call the set_rtl function to apply RTL styles
 set_rtl()
-class FoodTruck:
-    def __init__(self, env, order_time_min, order_time_max, config, logger):
-        self.env = env
-        self.logger = logger
-        self.order_station = simpy.Resource(env, capacity=config['order_capacity'])
-        self.prep_station = simpy.Resource(env, capacity=config['prep_capacity'])
-        self.pickup_station = simpy.Resource(env, capacity=config['pickup_capacity'])
-        self.batch = []
-        self.left_count = 0
-        self.left_before_ordering = 0
-        self.total_visitors = 0
-        self.undercooked_count = 0
-        self.wait_times = {'order': [], 'prep': [], 'pickup': [], 'total': []}
-        self.queue_sizes = {'order': [], 'prep': [], 'pickup': [], 'total': []}
-        self.left_over_time = []
-        self.left_before_ordering_over_time = []
-        self.undercooked_over_time = []
-        self.total_visitors_over_time = []
-        self.order_time_min = order_time_min
-        self.order_time_max = order_time_max
 
-    def process_service(self, station, visitor, service_time_range):
-        with station.request() as req:
-            yield req
-            start_time = self.env.now
-            service_time = np.random.uniform(*service_time_range)
-            yield self.env.timeout(service_time)
-        end_time = self.env.now
-        return start_time, end_time
+def create_real_time_animation(df, current_step, max_queue_size):
+    """
+    Create a real-time bar chart showing the current state of the queues.
+    """
+    current_row = df.iloc[current_step]
+    fig = go.Figure(data=[
+        go.Bar(x=['Order Queue', 'Prep Queue', 'Pickup Queue', 'Total Queue'], 
+               y=[current_row['Order Queue'], current_row['Prep Queue'], current_row['Pickup Queue'], current_row['Total Queue']],
+               marker=dict(color=['blue', 'green', 'red', 'black']))
+    ])
+    
+    fig.update_layout(
+        title=f"Real-time Simulation at Step {current_step}",
+        xaxis_title="Queue Type",
+        yaxis_title="Queue Size",
+        yaxis=dict(range=[0, max_queue_size])
+    )
+    
+    return fig
 
-    def order_service(self, visitor):
-        arrival_time = self.env.now
-        self.logger.log_event(visitor['name'], 'arrival', arrival_time)
-        start_time, end_time = yield from self.process_service(self.order_station, visitor, (self.order_time_min, self.order_time_max))
-        self.wait_times['order'].append(end_time - arrival_time)
-        self.logger.log_event(visitor['name'], 'order_complete', end_time)
-        return end_time - start_time
 
-    def prep_service(self, visitors):
-        prep_start = self.env.now
-        with self.prep_station.request() as req:
-            yield req
-            for visitor in visitors:
-                self.logger.log_event(visitor['name'], 'preparing', self.env.now)
-            service_time = np.random.normal(5, 1)
-            yield self.env.timeout(service_time)
-        prep_end = self.env.now
-        undercooked = np.random.rand(len(visitors)) < 0.3
-        self.undercooked_count += sum(undercooked)
-        for i, visitor in enumerate(visitors):
-            visitor['prep_time'] = prep_end - prep_start
-            self.wait_times['prep'].append(visitor['prep_time'])
-            self.logger.log_event(visitor['name'], 'prep_complete', prep_end)
-            if undercooked[i]:
-                self.logger.log_event(visitor['name'], 'undercooked', prep_end)
-        for visitor in visitors:
-            self.env.process(self.pickup_service(visitor))
+def create_final_graphs(food_truck):
+    """
+    Create the final static graphs showing queue sizes over time.
+    """
+    df = pd.DataFrame({
+        'Time': range(len(food_truck.queue_sizes['order'])),
+        'Order Queue': food_truck.queue_sizes['order'],
+        'Prep Queue': food_truck.queue_sizes['prep'],
+        'Pickup Queue': food_truck.queue_sizes['pickup'],
+        'Total Queue': food_truck.queue_sizes['total']
+    })
 
-    def pickup_service(self, visitor):
-        pickup_start = self.env.now
-        start_time, end_time = yield from self.process_service(self.pickup_station, visitor, (2, 4))
-        self.logger.log_event(visitor['name'], 'exit', end_time)
-        pickup_time = end_time - pickup_start
-        self.wait_times['pickup'].append(pickup_time)
-        total_time = end_time - visitor['arrival_time']
-        self.wait_times['total'].append(total_time)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df['Time'], y=df['Order Queue'], mode='lines', name='Order Queue'))
+    fig.add_trace(go.Scatter(x=df['Time'], y=df['Prep Queue'], mode='lines', name='Prep Queue'))
+    fig.add_trace(go.Scatter(x=df['Time'], y=df['Pickup Queue'], mode='lines', name='Pickup Queue'))
+    fig.add_trace(go.Scatter(x=df['Time'], y=df['Total Queue'], mode='lines', name='Total Queue', line=dict(color='black', width=4)))
 
-    def process_batch(self):
-        while self.batch:
-            batch_size = np.random.choice([1, 2, 3], p=[0.2, 0.5, 0.3])
-            visitors_to_process = self.batch[:batch_size]
-            del self.batch[:batch_size]
-            yield self.env.process(self.prep_service(visitors_to_process))
+    fig.update_layout(title="Queue Sizes Over Time", xaxis_title="Time", yaxis_title="Queue Size", legend_title="Queue Type")
+    
+    return fig, df  # Return both the plot and the DataFrame
 
-    def monitor(self):
-        while True:
-            self.queue_sizes['order'].append(len(self.order_station.queue))
-            self.queue_sizes['prep'].append(len(self.prep_station.queue))
-            self.queue_sizes['pickup'].append(len(self.pickup_station.queue))
-            total_queue_size = len(self.order_station.queue) + len(self.prep_station.queue) + len(self.pickup_station.queue)
-            self.queue_sizes['total'].append(total_queue_size)
-            self.left_over_time.append(self.left_count)
-            self.left_before_ordering_over_time.append(self.left_before_ordering)
-            self.undercooked_over_time.append(self.undercooked_count)
-            self.total_visitors_over_time.append(self.total_visitors)
-            yield self.env.timeout(1)
 
-def visitor(env, name, food_truck, leave_probability):
-    food_truck.total_visitors += 1
-    arrival_time = env.now
-    if np.random.random() < leave_probability:
-        food_truck.left_before_ordering += 1
-        food_truck.left_count += 1
-        return
-    order_time = yield env.process(food_truck.order_service({'name': name, 'arrival_time': arrival_time}))
-    food_truck.batch.append({'name': name, 'arrival_time': arrival_time, 'order_time': order_time})
-    if len(food_truck.batch) >= 1:
-        env.process(food_truck.process_batch())
+def show_food_truck():
+    st.title("סימולציית משאית מזון")
 
-def arrival_process(env, food_truck, arrival_rate, leave_probability):
-    visitor_count = 0
-    while True:
-        yield env.timeout(np.random.exponential(arrival_rate))
-        visitor_count += 1
-        env.process(visitor(env, visitor_count, food_truck, leave_probability))
+    st.header("הגדרות סימולציה")
+    sim_time = st.slider("זמן סימולציה (דקות)", 1000, 10000, 5000)
+    arrival_rate = st.slider("זמן ממוצע בין הגעות לקוחות (דקות)", 5, 20, 10)
+    order_time_min = st.slider("זמן הזמנה מינימלי (דקות)", 1, 5, 3)
+    order_time_max = st.slider("זמן הזמנה מקסימלי (דקות)", 5, 10, 7)
+    leave_probability = st.slider("הסתברות לעזיבה לפני הזמנה", 0.0, 0.5, 0.1)
+    
+    config = {
+        'order_capacity': st.slider("כמות עמדות בהזמנה", 1, 5, 1),
+        'prep_capacity': st.slider("כמות עמדות בהכנה", 1, 5, 1),
+        'pickup_capacity': st.slider("כמות עמדות באיסוף", 1, 5, 1)
+    }
 
-def run_simulation(sim_time, arrival_rate, order_time_min, order_time_max, leave_probability, config, logger):
-    env = simpy.Environment()
-    food_truck = FoodTruck(env, order_time_min, order_time_max, config, logger)
-    env.process(arrival_process(env, food_truck, arrival_rate, leave_probability))
-    env.process(food_truck.monitor())
-    env.run(until=sim_time)
-    return food_truck
+    if st.button("הפעל סימולציה"):
+        with st.spinner("מריץ סימולציה בזמן אמת..."):
+            logger = EventLogger()
+            speed = st.slider("מהירות סימולציה (פי)", 0.1, 10.0, 1.0)
 
-def run_simulation_with_speed(sim_time, arrival_rate, order_time_min, order_time_max, leave_probability, config, logger, speed):
-    env = simpy.Environment()
-    food_truck = FoodTruck(env, order_time_min, order_time_max, config, logger)
-    env.process(arrival_process(env, food_truck, arrival_rate, leave_probability))
-    env.process(food_truck.monitor())
-    while env.now < sim_time:
-        env.step()
-        env.timeout(1 / speed)
-    return food_truck
+            # Run the simulation in steps, showing real-time updates
+            env = simpy.Environment()
+            food_truck = run_simulation_with_speed(env, sim_time, arrival_rate, order_time_min, order_time_max, leave_probability, config, logger, speed)
+
+            # Store simulation in session
+            st.session_state.food_truck = food_truck
+
+            # Retrieve queue data
+            queue_data = pd.DataFrame({
+                'Time': range(len(food_truck.queue_sizes['order'])),
+                'Order Queue': food_truck.queue_sizes['order'],
+                'Prep Queue': food_truck.queue_sizes['prep'],
+                'Pickup Queue': food_truck.queue_sizes['pickup'],
+                'Total Queue': food_truck.queue_sizes['total']
+            })
+
+            # Maximum queue size for the y-axis
+            max_queue_size = queue_data[['Order Queue', 'Prep Queue', 'Pickup Queue', 'Total Queue']].max().max()
+
+            # Real-time simulation loop
+            st.subheader("תור בזמן אמת")
+            for step in range(len(queue_data)):
+                real_time_chart = create_real_time_animation(queue_data, step, max_queue_size)
+                st.plotly_chart(real_time_chart, use_container_width=True)
+                st.sleep(1.0 / speed)  # Control the speed of the animation
+            
+            st.success("הסימולציה בזמן אמת הושלמה!")
+
+        # After real-time simulation, show the final graphs
+        st.subheader("תוצאות הסימולציה (גרפים סופיים)")
+        final_chart, final_data = create_final_graphs(food_truck)
+        st.plotly_chart(final_chart, use_container_width=True)
+
+    # Description at the end
+    st.write("""
+    #### חקרו את הסימולציה
+    נסו וראו כיצד משתנים שונים משפיעים על ביצועי משאית המזון. התאימו את ההגדרות וההרצה לסימולציות שונות!
+    """)
+
+
+if __name__ == "__main__":
+    show_food_truck()
