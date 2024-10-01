@@ -165,7 +165,7 @@ def plot_real_time_queues(food_truck, step):
 
     # Update the layout with dynamic title including current queue sizes
     fig.update_layout(
-        title=f"Queue Status at Step {step}: Order Queue={current_order_queue}, Prep Queue={current_prep_queue}, Pickup Queue={current_pickup_queue}, Total Queue={current_total_queue}",
+        title=f"Queue Status at Step {step}: \n Order Queue={current_order_queue}, \n Prep Queue={current_prep_queue}, \n Pickup Queue={current_pickup_queue}, \n Total Queue={current_total_queue}",
         xaxis_title="Queue Type",
         yaxis_title="Queue Size",
         yaxis=dict(range=[0, max(df['Total Queue'])])  # Set y-axis limit based on total queue sizes
@@ -228,7 +228,7 @@ def show_food_truck():
             for step in range(len(food_truck.queue_sizes['order'])):
                 chart = plot_real_time_queues(food_truck, step)
                 real_time_chart.plotly_chart(chart, use_container_width=True)
-                time.sleep(0.01)  # Speed control for real-time updates
+                time.sleep(0.05)  # Speed control for real-time updates
             
             st.success("הסימולציה בזמן אמת הושלמה!")
 
