@@ -95,10 +95,17 @@ def update_real_time_chart(call_center, step, chart_placeholder):
     # Plot real-time queue length and employee utilization
     time_points = list(range(step + 1))
     
-    # Real-time queue length
-    queue_lengths = call_center.queue_lengths[:step+1]
-    employee_utilization = [util * 100 for util in call_center.employee_utilization[:step+1]]
+    # Make sure queue_lengths and employee_utilization match the number of time points
+    queue_lengths = call_center.queue_lengths[:step + 1]
+    employee_utilization = [util * 100 for util in call_center.employee_utilization[:step + 1]]
 
+    # Ensure that lengths of both lists are the same as time_points
+    if len(queue_lengths) < len(time_points):
+        time_points = time_points[:len(queue_lengths)]
+    if len(employee_utilization) < len(time_points):
+        time_points = time_points[:len(employee_utilization)]
+
+    # Plot the data
     plt.figure(figsize=(14, 4))
     plt.plot(time_points, queue_lengths, label='אורך תור (Queue Length)')
     plt.plot(time_points, employee_utilization, label='ניצולת עובדים (%)')
@@ -108,6 +115,7 @@ def update_real_time_chart(call_center, step, chart_placeholder):
     plt.legend()
     chart_placeholder.pyplot(plt.gcf())
     plt.clf()
+
 
 def plot_final_metrics(queue_lengths, employee_utilization, simulation_time):
     time_points = list(range(simulation_time))
