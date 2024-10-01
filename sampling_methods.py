@@ -126,12 +126,14 @@ def show_sampling_methods():
     # Move the slider for sample size inside the main page area
     st.subheader("בחר מספר דגימות ודגום התפלגות")
     num_samples = st.slider("מספר דגימות", min_value=1000, max_value=100000, value=1000, step=1000)
-    update_interval = st.slider("תדירות עדכון (מספר דגימות)", 1, 100, 10)
+    update_interval = st.slider("תדירות עדכון (מספר דגימות)", 100, 1000, 100)
 
     st.header("בחר שיטת דגימה")
     set_ltr_sliders() 
     if st.button("התפלגות אחידה"):
         st.session_state.selected_sampling = 'uniform'
+    if st.button("התפלגות נורמלית"):
+        st.session_state.selected_sampling = 'normal'
     if st.button("התפלגות מעריכית"):
         st.session_state.selected_sampling = 'exponential'
     if st.button("התפלגות מורכבת"):
@@ -151,8 +153,20 @@ def show_sampling_methods():
         true_density = lambda x: np.ones_like(x) / (b - a)
         run_sampling(lambda size: sample_uniform(a, b, size), num_samples, update_interval, "Uniform Distribution", progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
 
+    elif st.session_state.selected_sampling == 'normal':
+        st.header("2. התפלגות נורמלית")
+        st.latex(r"f(x) = \frac{1}{\sigma \sqrt{2\pi}} e^{-\frac{(x - \mu)^2}{2\sigma^2}}")
+        mu = st.slider("ממוצע (μ)", -10.0, 10.0, 0.0)
+        sigma = st.slider("סטיית תקן (σ)", 0.1, 5.0, 1.0)
+        progress_bar = st.progress(0)
+        plot_placeholder = st.empty()
+        qqplot_placeholder = st.empty()
+        stats_placeholder = st.empty()
+        true_density = lambda x: stats.norm.pdf(x, mu, sigma)
+        run_sampling(lambda size: sample_normal(mu, sigma, size), num_samples, update_interval, "Normal Distribution", progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
+
     elif st.session_state.selected_sampling == 'exponential':
-        st.header("2. התפלגות מעריכית")
+        st.header("3. התפלגות מעריכית")
         st.latex(r"f(x) = \lambda e^{-\lambda x}, \quad x \geq 0")
         lambda_param = st.slider("פרמטר למבדא", 0.1, 5.0, 1.0)
         progress_bar = st.progress(0)
@@ -163,7 +177,7 @@ def show_sampling_methods():
         run_sampling(lambda size: sample_exponential(lambda_param, size), num_samples, update_interval, "Exponential Distribution", progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
 
     elif st.session_state.selected_sampling == 'composite':
-        st.header("3. התפלגות מורכבת")
+        st.header("4. התפלגות מורכבת")
         st.latex(r"f(x) = 0.2 \cdot N(0, 1) + 0.8 \cdot N(3, 1)")
         progress_bar = st.progress(0)
         plot_placeholder = st.empty()
@@ -173,7 +187,7 @@ def show_sampling_methods():
         run_sampling(lambda size: sample_composite_distribution(size), num_samples, update_interval, "Composite Distribution", progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
 
     elif st.session_state.selected_sampling == 'acceptance_rejection':
-        st.header("4. שיטת הקבלה-דחייה")
+        st.header("5. שיטת הקבלה-דחייה")
         st.latex(r"f(x) = 3x^2, \quad 0 \leq x \leq 1")
         progress_bar = st.progress(0)
         plot_placeholder = st.empty()
