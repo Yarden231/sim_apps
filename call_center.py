@@ -81,7 +81,7 @@ def plot_real_time_queues(call_center, step):
     current_queue_size = df['Queue Length'].iloc[step]
     current_utilization = df['Employee Utilization'].iloc[step]
 
-    # Create bar chart to visualize real-time queue length
+    # Create bar chart to visualize real-time queue length and employee utilization
     fig = go.Figure(data=[
         go.Bar(x=['Queue Length', 'Employee Utilization (%)'], 
                y=[current_queue_size, current_utilization],
@@ -133,7 +133,7 @@ def plot_final_metrics(call_center):
     return fig
 
 # Main simulation function with real-time updates
-def run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time, real_time_chart, progress_placeholder):
+def run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time, real_time_chart):
     env = simpy.Environment()
     call_center = CallCenter(env, num_employees)
     env.process(generate_customers(env, call_center, customer_interval, call_duration_mean))
@@ -147,8 +147,6 @@ def run_simulation(num_employees, customer_interval, call_duration_mean, simulat
             chart = plot_real_time_queues(call_center, step)
             real_time_chart.plotly_chart(chart, use_container_width=True)
 
-        # Update progress bar
-        progress_placeholder.progress((step + 1) / simulation_time)
         time.sleep(0.1)  # Control speed of real-time updates
 
     return call_center
@@ -169,14 +167,13 @@ def show():
     simulation_time = st.slider("זמן סימולציה (ביחידות)", 100, 1000, 400)
 
     if st.button("הפעל סימולציה"):
-        # Create placeholders for progress and real-time chart
-        progress_placeholder = st.empty()
+        # Create placeholder for real-time chart
         real_time_chart = st.empty()
 
         st.write("מריץ סימולציה בזמן אמת...")
 
         # Run the simulation
-        call_center = run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time, real_time_chart, progress_placeholder)
+        call_center = run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time, real_time_chart)
 
         st.success("הסימולציה הושלמה!")
 
