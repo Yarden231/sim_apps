@@ -87,7 +87,7 @@ def plot_metrics(queue_lengths, employee_utilization, simulation_time):
     time_points = list(range(simulation_time))
 
     # Plot Queue Length Over Time
-    plt.figure(figsize=(14, 4))
+    plt.figure(figsize=(10, 2))
     plt.plot(time_points, queue_lengths, label='Queue Length')
     plt.xlabel('Time')
     plt.ylabel('Queue Length')
@@ -97,7 +97,7 @@ def plot_metrics(queue_lengths, employee_utilization, simulation_time):
     plt.clf()
 
     # Plot Employee Utilization Over Time
-    plt.figure(figsize=(14, 4))
+    plt.figure(figsize=(10, 2))
     plt.plot(time_points, employee_utilization, label='Employee Utilization (%)')
     plt.xlabel('Time')
     plt.ylabel('Utilization (%)')
