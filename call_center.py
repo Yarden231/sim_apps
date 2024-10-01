@@ -115,7 +115,9 @@ def update_real_time_chart(call_center, step, chart_placeholder):
         chart_placeholder.pyplot(plt.gcf())
         plt.clf()
 
-def plot_final_metrics(queue_lengths, employee_utilization, simulation_time):
+def plot_final_metrics(queue_lengths, employee_utilization):
+    # Use the actual length of queue_lengths to determine the time points
+    simulation_time = len(queue_lengths)
     time_points = list(range(simulation_time))
 
     # Plot Queue Length Over Time
@@ -170,7 +172,7 @@ def show():
         st.write("### אורך התור וניצולת עובדים לאורך זמן")
 
         # Plot the final metrics
-        plot_final_metrics(queue_lengths, employee_utilization, simulation_time)
+        plot_final_metrics(queue_lengths, employee_utilization)
 
 # This makes sure the app runs only when this file is executed directly
 if __name__ == "__main__":
