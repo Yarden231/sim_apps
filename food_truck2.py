@@ -151,29 +151,61 @@ def plot_real_time_queues(food_truck, step):
         'Total Queue': food_truck.queue_sizes['total']
     })
 
+    # Get current queue sizes for the title
+    current_order_queue = df['Order Queue'].iloc[step]
+    current_prep_queue = df['Prep Queue'].iloc[step]
+    current_pickup_queue = df['Pickup Queue'].iloc[step]
+    current_total_queue = df['Total Queue'].iloc[step]
+
     fig = go.Figure(data=[
         go.Bar(x=['Order Queue', 'Prep Queue', 'Pickup Queue', 'Total Queue'], 
-               y=[df['Order Queue'].iloc[step], df['Prep Queue'].iloc[step], df['Pickup Queue'].iloc[step], df['Total Queue'].iloc[step]],
+               y=[current_order_queue, current_prep_queue, current_pickup_queue, current_total_queue],
                marker=dict(color=['blue', 'green', 'red', 'black']))
     ])
 
+    # Update the layout with dynamic title including current queue sizes
     fig.update_layout(
-        title=f"Queue Status at Step {step}",
+        title=f"Queue Status at Step {step}: Order Queue={current_order_queue}, Prep Queue={current_prep_queue}, Pickup Queue={current_pickup_queue}, Total Queue={current_total_queue}",
         xaxis_title="Queue Type",
         yaxis_title="Queue Size",
-        yaxis=dict(range=[0, max(df['Total Queue'])])
+        yaxis=dict(range=[0, max(df['Total Queue'])])  # Set y-axis limit based on total queue sizes
     )
     return fig
+
+# Plot queue sizes over time after the simulation
+def plot_queue_sizes_over_time(food_truck):
+    df = pd.DataFrame({
+        'Time': range(len(food_truck.queue_sizes['order'])),
+        'Order Queue': food_truck.queue_sizes['order'],
+        'Prep Queue': food_truck.queue_sizes['prep'],
+        'Pickup Queue': food_truck.queue_sizes['pickup'],
+        'Total Queue': food_truck.queue_sizes['total']
+    })
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df['Time'], y=df['Order Queue'], mode='lines', name='Order Queue', line=dict(color='blue')))
+    fig.add_trace(go.Scatter(x=df['Time'], y=df['Prep Queue'], mode='lines', name='Prep Queue', line=dict(color='green')))
+    fig.add_trace(go.Scatter(x=df['Time'], y=df['Pickup Queue'], mode='lines', name='Pickup Queue', line=dict(color='red')))
+    fig.add_trace(go.Scatter(x=df['Time'], y=df['Total Queue'], mode='lines', name='Total Queue', line=dict(color='black', width=4)))
+
+    fig.update_layout(
+        title="Queue Sizes Over Time",
+        xaxis_title="Time",
+        yaxis_title="Queue Size",
+        legend_title="Queue Type"
+    )
+    return fig
+
 
 # Main Streamlit app
 def show_food_truck():
     st.title("סימולציית משאית מזון בזמן אמת")
 
     st.header("הגדרות סימולציה")
-    sim_time = st.slider("זמן סימולציה (דקות)", 1000, 10000, 5000)
-    arrival_rate = st.slider("זמן ממוצע בין הגעות לקוחות (דקות)", 5, 20, 10)
-    order_time_min = st.slider("זמן הזמנה מינימלי (דקות)", 1, 5, 3)
-    order_time_max = st.slider("זמן הזמנה מקסימלי (דקות)", 5, 10, 7)
+    sim_time = st.slider("זמן סימולציה (דקות)", 100, 10000, 100)
+    arrival_rate = st.slider("זמן ממוצע בין הגעות לקוחות (דקות)", 5, 20, 1)
+    order_time_min = st.slider("זמן הזמנה מינימלי (דקות)", 1, 5, 1)
+    order_time_max = st.slider("זמן הזמנה מקסימלי (דקות)", 5, 10, 1)
     leave_probability = st.slider("הסתברות לעזיבה לפני הזמנה", 0.0, 0.5, 0.1)
     
     config = {
@@ -196,9 +228,14 @@ def show_food_truck():
             for step in range(len(food_truck.queue_sizes['order'])):
                 chart = plot_real_time_queues(food_truck, step)
                 real_time_chart.plotly_chart(chart, use_container_width=True)
-                time.sleep(0.1)  # Speed control for real-time updates
+                time.sleep(0.01)  # Speed control for real-time updates
             
             st.success("הסימולציה בזמן אמת הושלמה!")
+
+            # After the simulation, plot the queue sizes over time
+            st.header(" גודל התורים כפונקציה של זמן הסימולציה:")
+            queue_size_over_time_chart = plot_queue_sizes_over_time(food_truck)
+            st.plotly_chart(queue_size_over_time_chart, use_container_width=True)
 
     st.write("""
     #### חקרו את הסימולציה
