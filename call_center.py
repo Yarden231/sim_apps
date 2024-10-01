@@ -132,12 +132,15 @@ def plot_final_metrics(call_center):
     )
     return fig
 
-# Main simulation function with real-time updates
-def run_simulation(num_employees, customer_interval, call_duration_mean):
+# Main simulation function
+def run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time):
     env = simpy.Environment()
     call_center = CallCenter(env, num_employees)
     env.process(generate_customers(env, call_center, customer_interval, call_duration_mean))
     env.process(call_center.track_metrics())
+
+    # Run the simulation until the end of the specified simulation time
+    env.run(until=simulation_time)
 
     return call_center
 
@@ -159,13 +162,12 @@ def show():
     if st.button("הפעל סימולציה"):
         with st.spinner("מריץ סימולציה בזמן אמת..."):
             # Create placeholder for real-time chart
-            
-            # Run the simulation
-            call_center = run_simulation(num_employees, customer_interval, call_duration_mean)
-            
             real_time_chart = st.empty()
 
-                        # Update the chart in real time with the queue sizes from the simulation
+            # Run the simulation
+            call_center = run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time)
+            
+            # Update the chart in real time with the queue sizes from the simulation
             for step in range(len(call_center.queue_lengths)):
                 chart = plot_real_time_queues(call_center, step)
                 real_time_chart.plotly_chart(chart, use_container_width=True)
