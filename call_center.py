@@ -139,16 +139,6 @@ def run_simulation(num_employees, customer_interval, call_duration_mean, simulat
     env.process(generate_customers(env, call_center, customer_interval, call_duration_mean))
     env.process(call_center.track_metrics())
 
-    for step in range(simulation_time):
-        env.run(until=step + 1)  # Step simulation by one unit of time
-
-        # Update real-time plot
-        if step < len(call_center.queue_lengths):  # Ensure there is enough data
-            chart = plot_real_time_queues(call_center, step)
-            real_time_chart.plotly_chart(chart, use_container_width=True)
-
-        time.sleep(0.1)  # Control speed of real-time updates
-
     return call_center
 
 # Streamlit app function
@@ -167,20 +157,26 @@ def show():
     simulation_time = st.slider("זמן סימולציה (ביחידות)", 100, 1000, 400)
 
     if st.button("הפעל סימולציה"):
-        # Create placeholder for real-time chart
-        real_time_chart = st.empty()
+        with st.spinner("מריץ סימולציה בזמן אמת..."):
+            # Create placeholder for real-time chart
+            
+            # Run the simulation
+            call_center = run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time, real_time_chart)
+            
+            real_time_chart = st.empty()
 
-        st.write("מריץ סימולציה בזמן אמת...")
+                        # Update the chart in real time with the queue sizes from the simulation
+            for step in range(len(call_center.queue_lengths)):
+                chart = plot_real_time_queues(call_center, step)
+                real_time_chart.plotly_chart(chart, use_container_width=True)
+                time.sleep(0.1)  # Speed control for real-time updates
 
-        # Run the simulation
-        call_center = run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time, real_time_chart)
+            st.success("הסימולציה הושלמה!")
 
-        st.success("הסימולציה הושלמה!")
-
-        # Final plot after simulation
-        st.header("גודל התור וניצולת עובדים לאורך זמן")
-        final_chart = plot_final_metrics(call_center)
-        st.plotly_chart(final_chart, use_container_width=True)
+            # Final plot after simulation
+            st.header("גודל התור וניצולת עובדים לאורך זמן")
+            final_chart = plot_final_metrics(call_center)
+            st.plotly_chart(final_chart, use_container_width=True)
 
 # Ensure the app runs directly
 if __name__ == "__main__":
