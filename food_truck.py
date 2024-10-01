@@ -121,8 +121,7 @@ def arrival_process(env, food_truck, arrival_rate, leave_probability):
         visitor_count += 1
         env.process(visitor(env, visitor_count, food_truck, leave_probability))
 
-def run_simulation_with_speed(sim_time, arrival_rate, order_time_min, order_time_max, leave_probability, config, logger, speed):
-    env = simpy.Environment()
+def run_simulation_with_speed(env,sim_time, arrival_rate, order_time_min, order_time_max, leave_probability, config, logger, speed):
     food_truck = FoodTruck(env, order_time_min, order_time_max, config, logger)
     env.process(arrival_process(env, food_truck, arrival_rate, leave_probability))
     env.process(food_truck.monitor())
