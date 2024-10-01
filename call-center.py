@@ -3,6 +3,10 @@ import simpy
 import numpy as np
 import pandas as pd
 import altair as alt
+from utils import set_rtl
+
+# Call the set_rtl function to apply RTL styles
+set_rtl()
 
 class Employee:
     def __init__(self, env, id):

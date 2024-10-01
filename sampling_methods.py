@@ -4,7 +4,10 @@ import math
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
+from utils import set_rtl
 
+# Call the set_rtl function to apply RTL styles
+set_rtl()
 def sample_uniform(a, b):
     return a + (b - a) * random.random()
 

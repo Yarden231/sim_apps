@@ -1,7 +1,10 @@
 import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
+from utils import set_rtl
 
+# Call the set_rtl function to apply RTL styles
+set_rtl()
 def show():
     st.title("תיאוריה של סימולציה")
 

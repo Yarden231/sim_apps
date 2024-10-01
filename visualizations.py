@@ -6,7 +6,10 @@ from logger import EventLogger
 import streamlit as st
 import pandas as pd
 import plotly.graph_objs as go
+from utils import set_rtl
 
+# Call the set_rtl function to apply RTL styles
+set_rtl()
 def create_queue_animation(food_truck):
     df = pd.DataFrame({
         'Time': range(len(food_truck.queue_sizes['order'])),

@@ -1,7 +1,10 @@
 import simpy
 import numpy as np
 import streamlit as st
+from utils import set_rtl
 
+# Call the set_rtl function to apply RTL styles
+set_rtl()
 
 class FoodTruck:
     def __init__(self, env, order_time_min, order_time_max, config, logger):

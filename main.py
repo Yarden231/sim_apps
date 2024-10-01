@@ -1,4 +1,8 @@
 import streamlit as st
+from utils import set_rtl
+
+# Call the set_rtl function to apply RTL styles
+set_rtl()
 
 # Set page config without the theme argument
 st.set_page_config(
