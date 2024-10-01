@@ -5,6 +5,30 @@ import statistics
 import plotly.graph_objs as go
 import time
 
+# Custom utility functions to handle RTL and LTR
+def set_rtl():
+    st.markdown(
+        """
+        <style>
+        body {
+            direction: rtl;
+            text-align: right;
+        }
+        </style>
+        """, unsafe_allow_html=True
+    )
+
+def set_ltr_sliders():
+    st.markdown(
+        """
+        <style>
+        [data-baseweb="slider"] {
+            direction: ltr !important;
+        }
+        </style>
+        """, unsafe_allow_html=True
+    )
+
 # Simulation Classes and Functions
 class Employee:
     def __init__(self, env, id):
@@ -67,109 +91,93 @@ def generate_customers(env, call_center, interval, call_duration_mean):
         customer = Customer(env, call_center, call_duration)
         env.process(customer.request_support())
 
-def run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time, progress_placeholder, chart_placeholder):
+# Real-time plot for live queue updates
+def plot_real_time_queues(call_center, step):
+    queue_size = call_center.queue_lengths[step] if step < len(call_center.queue_lengths) else 0
+    utilization = call_center.employee_utilization[step] * 100 if step < len(call_center.employee_utilization) else 0
+
+    fig = go.Figure(data=[
+        go.Bar(x=['Queue Size', 'Employee Utilization (%)'],
+               y=[queue_size, utilization],
+               marker=dict(color=['blue', 'green']))
+    ])
+
+    fig.update_layout(
+        title=f"Real-Time Metrics at Step {step}",
+        xaxis_title="Metric",
+        yaxis_title="Value",
+        yaxis=dict(range=[0, 100])
+    )
+    return fig
+
+# After simulation plot: queue sizes and utilization over time
+def plot_queue_sizes_over_time(call_center, simulation_time):
+    time_points = list(range(simulation_time))
+
+    fig_queue = go.Figure()
+    fig_queue.add_trace(go.Scatter(x=time_points, y=call_center.queue_lengths, mode='lines', name='Queue Length', line=dict(color='blue')))
+    fig_queue.add_trace(go.Scatter(x=time_points, y=[u * 100 for u in call_center.employee_utilization], mode='lines', name='Employee Utilization (%)', line=dict(color='green')))
+    
+    fig_queue.update_layout(
+        title="Queue Length and Employee Utilization Over Time",
+        xaxis_title="Time (Steps)",
+        yaxis_title="Value",
+        legend_title="Metrics"
+    )
+    return fig_queue
+
+# Main simulation function with real-time updates
+def run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time, real_time_chart, progress_placeholder):
     env = simpy.Environment()
     call_center = CallCenter(env, num_employees)
     env.process(generate_customers(env, call_center, customer_interval, call_duration_mean))
     env.process(call_center.track_metrics())
 
-    # Step-by-step simulation for real-time updates
-    for i in range(simulation_time):
+    for step in range(simulation_time):
         env.step()  # Step simulation
-        # Update real-time progress and chart
-        update_real_time_chart(call_center, i, chart_placeholder)
-        progress_placeholder.progress((i + 1) / simulation_time)
-        time.sleep(0.1)  # Simulate real-time updates
 
-    # Return the results after the simulation completes
-    if call_center.wait_times:
-        avg_wait = statistics.mean(call_center.wait_times)
-    else:
-        avg_wait = 0
+        # Update real-time plot
+        chart = plot_real_time_queues(call_center, step)
+        real_time_chart.plotly_chart(chart, use_container_width=True)
 
-    employee_utilization_percentages = [util * 100 for util in call_center.employee_utilization]
+        # Update progress bar
+        progress_placeholder.progress((step + 1) / simulation_time)
+        time.sleep(0.1)
 
-    return avg_wait, call_center.queue_lengths, employee_utilization_percentages
+    return call_center
 
-def update_real_time_chart(call_center, step, chart_placeholder):
-    # Real-time queue length and employee utilization update
-    current_queue_size = call_center.queue_lengths[step] if step < len(call_center.queue_lengths) else 0
-    current_utilization = call_center.employee_utilization[step] * 100 if step < len(call_center.employee_utilization) else 0
-
-    fig = go.Figure(data=[
-        go.Bar(x=['Queue Length', 'Employee Utilization (%)'], 
-               y=[current_queue_size, current_utilization], 
-               marker=dict(color=['blue', 'green']))
-    ])
-
-    # Update the layout with dynamic title
-    fig.update_layout(
-        title=f"Real-Time Queue and Utilization at Step {step}",
-        xaxis_title="Metric",
-        yaxis_title="Value",
-        yaxis=dict(range=[0, max(current_queue_size + 10, 100)])  # Dynamically scale the y-axis
-    )
-    chart_placeholder.plotly_chart(fig, use_container_width=True)
-
-def plot_final_metrics(queue_lengths, employee_utilization, simulation_time):
-    time_points = list(range(simulation_time))
-
-    # Plot Queue Length Over Time
-    fig_queue = go.Figure()
-    fig_queue.add_trace(go.Scatter(x=time_points, y=queue_lengths, mode='lines', name='Queue Length', line=dict(color='blue')))
-    fig_queue.update_layout(
-        title="Queue Length Over Time",
-        xaxis_title="Time",
-        yaxis_title="Queue Length",
-        legend_title="Metrics"
-    )
-    st.plotly_chart(fig_queue, use_container_width=True)
-
-    # Plot Employee Utilization Over Time
-    fig_utilization = go.Figure()
-    fig_utilization.add_trace(go.Scatter(x=time_points, y=employee_utilization, mode='lines', name='Employee Utilization (%)', line=dict(color='green')))
-    fig_utilization.update_layout(
-        title="Employee Utilization Over Time",
-        xaxis_title="Time",
-        yaxis_title="Employee Utilization (%)",
-        legend_title="Metrics"
-    )
-    st.plotly_chart(fig_utilization, use_container_width=True)
-
-# Encapsulate Streamlit app in a function
+# Streamlit app function
 def show():
-    st.title("Real-Time Call Center Simulation")
+    # Set RTL for Hebrew text layout
+    set_rtl()
+    set_ltr_sliders()  # Ensure sliders are LTR
 
-    # Slider inputs for simulation parameters
-    num_employees = st.slider("Number of Employees", min_value=1, max_value=10, value=3)
-    customer_interval = st.slider("Average Time Between Customer Arrivals (Minutes)", min_value=1, max_value=10, value=4)
-    call_duration_mean = st.slider("Average Call Duration (Minutes)", min_value=1, max_value=10, value=8)
-    simulation_time = st.slider("Simulation Time (Steps)", min_value=100, max_value=1000, value=400)
+    st.title("סימולציית מרכז שירות לקוחות בזמן אמת")
 
-    # Display the selected parameters
-    st.write("### Selected Simulation Parameters:")
-    st.write(f"- Number of Employees: {num_employees}")
-    st.write(f"- Average Time Between Arrivals: {customer_interval} minutes")
-    st.write(f"- Average Call Duration: {call_duration_mean} minutes")
-    st.write(f"- Simulation Time: {simulation_time} steps")
+    # Simulation parameters in RTL
+    st.header("הגדרות סימולציה")
+    num_employees = st.slider("מספר נציגי שירות", 1, 10, 3)
+    customer_interval = st.slider("זמן ממוצע בין הגעות לקוחות (בדקות)", 1, 10, 4)
+    call_duration_mean = st.slider("משך שיחה ממוצע (בדקות)", 1, 10, 8)
+    simulation_time = st.slider("זמן סימולציה (ביחידות)", 100, 1000, 400)
 
-    # Placeholder for progress bar and real-time chart
-    progress_placeholder = st.empty()
-    chart_placeholder = st.empty()
+    if st.button("הפעל סימולציה"):
+        # Create placeholders for progress and real-time charts
+        progress_placeholder = st.empty()
+        real_time_chart = st.empty()
 
-    # Run simulation when button is pressed
-    if st.button("Run Simulation"):
-        avg_wait, queue_lengths, employee_utilization = run_simulation(
-            num_employees, customer_interval, call_duration_mean, simulation_time, progress_placeholder, chart_placeholder
-        )
+        st.write("מריץ סימולציה בזמן אמת...")
 
-        # Display the results
-        st.write(f"### Average Wait Time: {avg_wait:.2f} units")
-        st.write("### Final Queue Length and Employee Utilization Metrics:")
+        # Run the simulation
+        call_center = run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time, real_time_chart, progress_placeholder)
 
-        # Plot the final metrics
-        plot_final_metrics(queue_lengths, employee_utilization, simulation_time)
+        st.success("הסימולציה הושלמה!")
 
-# This makes sure the app runs only when this file is executed directly
+        # Final plot after simulation
+        st.header("גודל תור וניצולת עובדים לאורך זמן")
+        final_chart = plot_queue_sizes_over_time(call_center, simulation_time)
+        st.plotly_chart(final_chart, use_container_width=True)
+
+# Ensure the app runs directly
 if __name__ == "__main__":
     show()
