@@ -125,7 +125,7 @@ def show_sampling_methods():
 
     # Move the slider for sample size inside the main page area
     st.subheader("בחר מספר דגימות ודגום התפלגות")
-    num_samples = st.slider("מספר דגימות", min_value=1000, max_value=100000, value=1000, step=1000)
+    num_samples = st.slider("מספר דגימות", min_value=1000, max_value=1000000, value=1000, step=1000)
     update_interval = st.slider("תדירות עדכון (מספר דגימות)", 100, 1000, 100)
 
     st.header("בחר שיטת דגימה")
