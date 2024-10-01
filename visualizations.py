@@ -104,7 +104,7 @@ def show_food_truck():
     if st.button("הפעל סימולציה"):
         with st.spinner("מריץ סימולציה..."):
             logger = EventLogger()
-            food_truck = run_simulation(sim_time, arrival_rate, order_time_min, order_time_max, leave_probability, config, logger)
+            food_truck = run_simulation_with_speed(sim_time, arrival_rate, order_time_min, order_time_max, leave_probability, config, logger)
             if food_truck:
                 st.success("הסימולציה הושלמה!")
                 st.session_state.food_truck = food_truck  # שמירת התוצאות ב-session state
@@ -135,6 +135,5 @@ def show_food_truck():
 if __name__ == "__main__":
     show_food_truck()
 
-if __name__ == "__main__":
-    show_food_truck()
+
 
