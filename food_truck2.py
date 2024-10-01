@@ -6,7 +6,7 @@ import plotly.graph_objs as go
 from logger import EventLogger  # Assuming this handles event logging
 from utils import set_rtl  # RTL setting function
 import time  # Import the time module
-
+from utils import set_ltr_sliders
 # Call the set_rtl function to apply RTL styles
 set_rtl()
 
@@ -199,6 +199,7 @@ def plot_queue_sizes_over_time(food_truck):
 
 # Main Streamlit app
 def show_food_truck():
+    set_ltr_sliders()  # Inject the CSS to ensure LTR behavior for the sliders
     st.title("סימולציית משאית מזון בזמן אמת")
 
     st.header("הגדרות סימולציה")
