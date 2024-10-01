@@ -5,6 +5,7 @@ import pandas as pd
 import plotly.graph_objs as go
 from logger import EventLogger  # Assuming this handles event logging
 from utils import set_rtl  # RTL setting function
+import time  # Import the time module
 
 # Call the set_rtl function to apply RTL styles
 set_rtl()
@@ -195,7 +196,7 @@ def show_food_truck():
             for step in range(len(food_truck.queue_sizes['order'])):
                 chart = plot_real_time_queues(food_truck, step)
                 real_time_chart.plotly_chart(chart, use_container_width=True)
-                st.sleep(0.1)  # Speed control for real-time updates
+                time.sleep(0.1)  # Speed control for real-time updates
             
             st.success("הסימולציה בזמן אמת הושלמה!")
 
