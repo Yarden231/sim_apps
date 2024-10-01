@@ -102,17 +102,20 @@ class FoodTruck:
             yield self.env.timeout(1)
 
 # Simulation function with real-time updates
-def run_simulation(env, sim_time, arrival_rate, order_time_min, order_time_max, leave_probability, config, logger):
+def run_simulation(sim_time, arrival_rate, order_time_min, order_time_max, leave_probability, config, logger):
+    # Create a SimPy environment and FoodTruck object
+    env = simpy.Environment()
     food_truck = FoodTruck(env, order_time_min, order_time_max, config, logger)
+    
+    # Start the customer arrival and monitoring processes
     env.process(arrival_process(env, food_truck, arrival_rate, leave_probability))
     env.process(food_truck.monitor())
     
-    # Real-time simulation step
-    while env.now < sim_time:
-        env.step()
-        yield env.timeout(1)
+    # Run the simulation for the given time
+    env.run(until=sim_time)
+    
+    return food_truck  # Return the completed FoodTruck object after the simulation ends
 
-    return food_truck
 
 # Customer arrival process
 def arrival_process(env, food_truck, arrival_rate, leave_probability):
@@ -181,13 +184,14 @@ def show_food_truck():
     if st.button("הפעל סימולציה"):
         with st.spinner("מריץ סימולציה בזמן אמת..."):
             logger = EventLogger()
-            env = simpy.Environment()
+
+            # Run the simulation and get the completed FoodTruck object
+            food_truck = run_simulation(sim_time, arrival_rate, order_time_min, order_time_max, leave_probability, config, logger)
 
             # Placeholder for real-time chart
             real_time_chart = st.empty()
 
-            # Run the simulation and update the chart in real time
-            food_truck = run_simulation(env, sim_time, arrival_rate, order_time_min, order_time_max, leave_probability, config, logger)
+            # Update the chart in real time with the queue sizes from the simulation
             for step in range(len(food_truck.queue_sizes['order'])):
                 chart = plot_real_time_queues(food_truck, step)
                 real_time_chart.plotly_chart(chart, use_container_width=True)
