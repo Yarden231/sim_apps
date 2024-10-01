@@ -17,7 +17,7 @@ set_rtl()
 # Import all page functions
 from home import show as show_home
 from theory import show as show_theory
-from call_center import show as show_call_center
+from call_center2 import show as show_call_center
 from food_truck2 import show_food_truck
 from logger import EventLogger
 from sampling_methods import show_sampling_methods

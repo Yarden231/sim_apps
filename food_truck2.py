@@ -238,10 +238,7 @@ def show_food_truck():
             queue_size_over_time_chart = plot_queue_sizes_over_time(food_truck)
             st.plotly_chart(queue_size_over_time_chart, use_container_width=True)
 
-    st.write("""
-    #### חקרו את הסימולציה
-    נסו וראו כיצד משתנים שונים משפיעים על ביצועי משאית המזון.
-    """)
+
 
 if __name__ == "__main__":
     show_food_truck()
