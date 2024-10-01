@@ -4,30 +4,8 @@ import random
 import statistics
 import plotly.graph_objs as go
 import time
-
-# Custom utility functions to handle RTL and LTR
-def set_rtl():
-    st.markdown(
-        """
-        <style>
-        body {
-            direction: rtl;
-            text-align: right;
-        }
-        </style>
-        """, unsafe_allow_html=True
-    )
-
-def set_ltr_sliders():
-    st.markdown(
-        """
-        <style>
-        [data-baseweb="slider"] {
-            direction: ltr !important;
-        }
-        </style>
-        """, unsafe_allow_html=True
-    )
+from utils import set_rtl  
+from utils import set_ltr_sliders
 
 # Simulation Classes and Functions
 class Employee:
@@ -91,21 +69,19 @@ def generate_customers(env, call_center, interval, call_duration_mean):
         customer = Customer(env, call_center, call_duration)
         env.process(customer.request_support())
 
-# Real-time plot for live queue updates
+# Real-time plot for live queue updates (Queue Length only)
 def plot_real_time_queues(call_center, step):
     queue_size = call_center.queue_lengths[step] if step < len(call_center.queue_lengths) else 0
 
     fig = go.Figure(data=[
-        go.Bar(x=['Queue Size'],
-               y=[queue_size],
-               marker=dict(color=['pink']))
+        go.Bar(x=['Queue Size'], y=[queue_size], marker=dict(color='blue'))
     ])
 
     fig.update_layout(
-        title=f"Real-Time Queue Size at Step {step}",
-        xaxis_title="Queue",
+        title=f"Queue Length at Step {step}",
+        xaxis_title="Metric",
         yaxis_title="Queue Size",
-        yaxis=dict(range=[0, 100])
+        yaxis=dict(range=[0, max(call_center.queue_lengths + [10])])  # Dynamic range adjustment
     )
     return fig
 
