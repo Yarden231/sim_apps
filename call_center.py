@@ -117,7 +117,7 @@ def run_simulation(num_employees, customer_interval, call_duration_mean, simulat
     env.process(generate_customers(env, call_center, customer_interval, call_duration_mean))
     env.process(call_center.track_metrics())
 
-    for step in range(simulation_time):
+    for step in range(len(call_center.queue_lengths)):
         env.step()  # Step simulation
 
         # Update real-time plot
