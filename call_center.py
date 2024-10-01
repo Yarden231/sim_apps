@@ -4,7 +4,7 @@ import random
 import statistics
 import matplotlib.pyplot as plt
 
-# Simulation Classes and Functions
+# Simulation Classes and Functions (unchanged)
 
 class Employee:
     def __init__(self, env, id):
@@ -87,7 +87,7 @@ def plot_metrics(queue_lengths, employee_utilization, simulation_time):
     time_points = list(range(simulation_time))
 
     # Plot Queue Length Over Time
-    plt.figure(figsize=(10, 2))
+    plt.figure(figsize=(14, 4))
     plt.plot(time_points, queue_lengths, label='Queue Length')
     plt.xlabel('Time')
     plt.ylabel('Queue Length')
@@ -97,7 +97,7 @@ def plot_metrics(queue_lengths, employee_utilization, simulation_time):
     plt.clf()
 
     # Plot Employee Utilization Over Time
-    plt.figure(figsize=(10, 2))
+    plt.figure(figsize=(14, 4))
     plt.plot(time_points, employee_utilization, label='Employee Utilization (%)')
     plt.xlabel('Time')
     plt.ylabel('Utilization (%)')
@@ -115,6 +115,13 @@ def show():
     customer_interval = st.slider("Customer Arrival Rate (mean interval)", min_value=1, max_value=10, value=4)
     call_duration_mean = st.slider("Call Duration Mean", min_value=1, max_value=10, value=8)
     simulation_time = st.slider("Simulation Time (units)", min_value=100, max_value=1000, value=400)
+
+    # Display the selected parameters
+    st.write("### Selected Simulation Parameters:")
+    st.write(f"- Number of Employees: {num_employees}")
+    st.write(f"- Customer Arrival Rate (mean interval): {customer_interval} units")
+    st.write(f"- Call Duration Mean: {call_duration_mean} units")
+    st.write(f"- Simulation Time: {simulation_time} units")
 
     # Run simulation when button is pressed
     if st.button("Run Simulation"):
