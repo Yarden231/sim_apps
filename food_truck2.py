@@ -228,7 +228,7 @@ def show_food_truck():
             for step in range(len(food_truck.queue_sizes['order'])):
                 chart = plot_real_time_queues(food_truck, step)
                 real_time_chart.plotly_chart(chart, use_container_width=True)
-                time.sleep(0.05)  # Speed control for real-time updates
+                time.sleep(0.1)  # Speed control for real-time updates
             
             st.success("הסימולציה בזמן אמת הושלמה!")
 
