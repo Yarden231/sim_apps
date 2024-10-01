@@ -113,7 +113,7 @@ def run_sampling(sampling_function, num_samples, update_interval, title, progres
         progress_bar.progress((i + update_interval) / num_samples)
         
         # Delay to simulate real-time sampling (optional)
-        time.sleep(0.01)
+        #time.sleep(0.01)
 
 def show_sampling_methods():
     st.title("הדגמה של שיטות דגימה שונות")
