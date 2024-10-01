@@ -162,4 +162,6 @@ def show():
         final_chart = plot_queue_sizes_over_time(call_center, simulation_time)
         st.plotly_chart(final_chart, use_container_width=True)
 
-
+# Ensure the app runs directly
+if __name__ == "__main__":
+    show()
