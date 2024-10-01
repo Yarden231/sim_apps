@@ -3,8 +3,8 @@ import simpy
 import random
 import plotly.graph_objs as go
 import time
-from utils import set_rtl, set_ltr_sliders
 import pandas as pd
+from utils import set_rtl, set_ltr_sliders
 
 # Simulation Classes and Functions
 class Employee:
@@ -68,45 +68,69 @@ def generate_customers(env, call_center, interval, call_duration_mean):
         customer = Customer(env, call_center, call_duration)
         env.process(customer.request_support())
 
-# Real-time plot for live queue updates (Queue Length only)
+# Plot real-time queue updates
 def plot_real_time_queues(call_center, step):
+    # Create DataFrame for real-time data
     df = pd.DataFrame({
         'Time': range(len(call_center.queue_lengths)),
-        'Queue Length': call_center.queue_lengths
+        'Queue Length': call_center.queue_lengths,
+        'Employee Utilization': [u * 100 for u in call_center.employee_utilization]
     })
 
-    # Get the current queue size at the current step
+    # Current metrics for dynamic title
     current_queue_size = df['Queue Length'].iloc[step]
+    current_utilization = df['Employee Utilization'].iloc[step]
 
-    # Create the bar plot showing the queue length
+    # Create bar chart to visualize real-time queue length
     fig = go.Figure(data=[
-        go.Bar(x=['Queue Length'], y=[current_queue_size], marker=dict(color=['blue']))
+        go.Bar(x=['Queue Length', 'Employee Utilization (%)'], 
+               y=[current_queue_size, current_utilization],
+               marker=dict(color=['blue', 'green']))
     ])
 
-    # Update the layout with dynamic title
+    # Update layout with dynamic title
     fig.update_layout(
-        title=f"Queue Length at Step {step}: {current_queue_size}",
+        title=f"Queue & Utilization Status at Step {step}: Queue={current_queue_size}, Utilization={current_utilization:.2f}%",
         xaxis_title="Metric",
-        yaxis_title="Queue Size",
-        yaxis=dict(range=[0, max(df['Queue Length'].max(), 10)])  # Dynamically set y-axis range
+        yaxis_title="Value",
+        yaxis=dict(range=[0, 100])  # Set y-axis limit
     )
     return fig
 
-# After simulation plot: queue sizes and utilization over time
-def plot_queue_sizes_over_time(call_center, simulation_time):
-    time_points = list(range(len(call_center.queue_lengths)))
+# Plot after the simulation finishes
+def plot_final_metrics(call_center):
+    df = pd.DataFrame({
+        'Time': range(len(call_center.queue_lengths)),
+        'Queue Length': call_center.queue_lengths,
+        'Employee Utilization (%)': [u * 100 for u in call_center.employee_utilization]
+    })
 
-    fig_queue = go.Figure()
-    fig_queue.add_trace(go.Scatter(x=time_points, y=call_center.queue_lengths, mode='lines', name='Queue Length', line=dict(color='blue')))
-    fig_queue.add_trace(go.Scatter(x=time_points, y=[u * 100 for u in call_center.employee_utilization], mode='lines', name='Employee Utilization (%)', line=dict(color='green')))
-    
-    fig_queue.update_layout(
+    fig = go.Figure()
+
+    fig.add_trace(go.Scatter(
+        x=df['Time'], 
+        y=df['Queue Length'], 
+        mode='lines', 
+        name='Queue Length', 
+        line=dict(color='blue')
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=df['Time'], 
+        y=df['Employee Utilization (%)'], 
+        mode='lines', 
+        name='Employee Utilization (%)', 
+        line=dict(color='green')
+    ))
+
+    # Update layout for final plot
+    fig.update_layout(
         title="Queue Length and Employee Utilization Over Time",
         xaxis_title="Time (Steps)",
         yaxis_title="Value",
         legend_title="Metrics"
     )
-    return fig_queue
+    return fig
 
 # Main simulation function with real-time updates
 def run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time, real_time_chart, progress_placeholder):
@@ -116,23 +140,22 @@ def run_simulation(num_employees, customer_interval, call_duration_mean, simulat
     env.process(call_center.track_metrics())
 
     for step in range(simulation_time):
-        env.run(until=step + 1)  # Step simulation one unit of time
+        env.run(until=step + 1)  # Step simulation by one unit of time
 
-        # Update real-time plot in a single placeholder (chart refreshes in place)
-        if step < len(call_center.queue_lengths):  # Ensure that the queue_lengths list has enough data
+        # Update real-time plot
+        if step < len(call_center.queue_lengths):  # Ensure there is enough data
             chart = plot_real_time_queues(call_center, step)
-            real_time_chart.empty()  # Clear the placeholder before updating
             real_time_chart.plotly_chart(chart, use_container_width=True)
 
         # Update progress bar
         progress_placeholder.progress((step + 1) / simulation_time)
-        time.sleep(0.1)
+        time.sleep(0.1)  # Control speed of real-time updates
 
     return call_center
 
 # Streamlit app function
 def show():
-    # Set RTL for Hebrew text layout
+    # Set RTL for Hebrew text layout (if needed)
     set_rtl()
     set_ltr_sliders()  # Ensure sliders are LTR
 
@@ -146,9 +169,9 @@ def show():
     simulation_time = st.slider("זמן סימולציה (ביחידות)", 100, 1000, 400)
 
     if st.button("הפעל סימולציה"):
-        # Create placeholders for progress and real-time charts
+        # Create placeholders for progress and real-time chart
         progress_placeholder = st.empty()
-        real_time_chart = st.empty()  # Create one placeholder for real-time chart
+        real_time_chart = st.empty()
 
         st.write("מריץ סימולציה בזמן אמת...")
 
@@ -158,8 +181,8 @@ def show():
         st.success("הסימולציה הושלמה!")
 
         # Final plot after simulation
-        st.header("גודל תור וניצולת עובדים לאורך זמן")
-        final_chart = plot_queue_sizes_over_time(call_center, simulation_time)
+        st.header("גודל התור וניצולת עובדים לאורך זמן")
+        final_chart = plot_final_metrics(call_center)
         st.plotly_chart(final_chart, use_container_width=True)
 
 # Ensure the app runs directly
