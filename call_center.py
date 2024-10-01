@@ -1,11 +1,9 @@
 import streamlit as st
 import simpy
 import random
-import statistics
 import plotly.graph_objs as go
 import time
-from utils import set_rtl  
-from utils import set_ltr_sliders
+from utils import set_rtl, set_ltr_sliders
 import pandas as pd
 
 # Simulation Classes and Functions
@@ -96,7 +94,7 @@ def plot_real_time_queues(call_center, step):
 
 # After simulation plot: queue sizes and utilization over time
 def plot_queue_sizes_over_time(call_center, simulation_time):
-    time_points = list(range(simulation_time))
+    time_points = list(range(len(call_center.queue_lengths)))
 
     fig_queue = go.Figure()
     fig_queue.add_trace(go.Scatter(x=time_points, y=call_center.queue_lengths, mode='lines', name='Queue Length', line=dict(color='blue')))
@@ -117,12 +115,13 @@ def run_simulation(num_employees, customer_interval, call_duration_mean, simulat
     env.process(generate_customers(env, call_center, customer_interval, call_duration_mean))
     env.process(call_center.track_metrics())
 
-    for step in range(len(call_center.queue_lengths)):
-        env.step()  # Step simulation
+    for step in range(simulation_time):
+        env.run(until=step + 1)  # Step simulation one unit of time
 
         # Update real-time plot
-        chart = plot_real_time_queues(call_center, step)
-        real_time_chart.plotly_chart(chart, use_container_width=True)
+        if step < len(call_center.queue_lengths):  # Ensure that the queue_lengths list has enough data
+            chart = plot_real_time_queues(call_center, step)
+            real_time_chart.plotly_chart(chart, use_container_width=True)
 
         # Update progress bar
         progress_placeholder.progress((step + 1) / simulation_time)
