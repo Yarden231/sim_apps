@@ -71,17 +71,25 @@ def generate_customers(env, call_center, interval, call_duration_mean):
 
 # Real-time plot for live queue updates (Queue Length only)
 def plot_real_time_queues(call_center, step):
-    queue_size = call_center.queue_lengths[step] if step < len(call_center.queue_lengths) else 0
+    df = pd.DataFrame({
+        'Time': range(len(call_center.queue_lengths)),
+        'Queue Length': call_center.queue_lengths
+    })
 
+    # Get the current queue size at the current step
+    current_queue_size = df['Queue Length'].iloc[step]
+
+    # Create the bar plot showing the queue length
     fig = go.Figure(data=[
-        go.Bar(x=['Queue Size'], y=[queue_size], marker=dict(color='blue'))
+        go.Bar(x=['Queue Length'], y=[current_queue_size], marker=dict(color=['blue']))
     ])
 
+    # Update the layout with dynamic title
     fig.update_layout(
-        title=f"Queue Length at Step {step}",
+        title=f"Queue Length at Step {step}: {current_queue_size}",
         xaxis_title="Metric",
         yaxis_title="Queue Size",
-        yaxis=dict(range=[0, max(call_center.queue_lengths + [10])])  # Dynamic range adjustment
+        yaxis=dict(range=[0, max(df['Queue Length'].max(), 10)])  # Dynamically set y-axis range
     )
     return fig
 
