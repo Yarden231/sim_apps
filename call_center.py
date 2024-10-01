@@ -3,9 +3,9 @@ import simpy
 import random
 import statistics
 import matplotlib.pyplot as plt
+import time
 
-# Simulation Classes and Functions (unchanged)
-
+# Simulation Classes and Functions
 class Employee:
     def __init__(self, env, id):
         self.env = env
@@ -67,13 +67,21 @@ def generate_customers(env, call_center, interval, call_duration_mean):
         customer = Customer(env, call_center, call_duration)
         env.process(customer.request_support())
 
-def run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time):
+def run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time, progress_placeholder, chart_placeholder):
     env = simpy.Environment()
     call_center = CallCenter(env, num_employees)
     env.process(generate_customers(env, call_center, customer_interval, call_duration_mean))
     env.process(call_center.track_metrics())
-    env.run(until=simulation_time)
+    
+    # Step-by-step simulation for real-time updates
+    for i in range(simulation_time):
+        env.step()  # Step simulation
+        # Update real-time progress and graph
+        update_real_time_chart(call_center, i, chart_placeholder)
+        progress_placeholder.progress((i + 1) / simulation_time)
+        time.sleep(0.01)  # Sleep to mimic real-time progress
 
+    # Return the results after the simulation completes
     if call_center.wait_times:
         avg_wait = statistics.mean(call_center.wait_times)
     else:
@@ -83,58 +91,80 @@ def run_simulation(num_employees, customer_interval, call_duration_mean, simulat
 
     return avg_wait, call_center.queue_lengths, employee_utilization_percentages
 
-def plot_metrics(queue_lengths, employee_utilization, simulation_time):
+def update_real_time_chart(call_center, step, chart_placeholder):
+    # Plot real-time queue length and employee utilization
+    time_points = list(range(step + 1))
+    
+    # Real-time queue length
+    queue_lengths = call_center.queue_lengths[:step+1]
+    employee_utilization = [util * 100 for util in call_center.employee_utilization[:step+1]]
+
+    plt.figure(figsize=(14, 4))
+    plt.plot(time_points, queue_lengths, label='אורך תור (Queue Length)')
+    plt.plot(time_points, employee_utilization, label='ניצולת עובדים (%)')
+    plt.xlabel('זמן (Time)')
+    plt.ylabel('ערך (Value)')
+    plt.title(f'תור וניצולת עובדים בזמן אמת בשלב {step}')
+    plt.legend()
+    chart_placeholder.pyplot(plt.gcf())
+    plt.clf()
+
+def plot_final_metrics(queue_lengths, employee_utilization, simulation_time):
     time_points = list(range(simulation_time))
 
     # Plot Queue Length Over Time
     plt.figure(figsize=(14, 4))
-    plt.plot(time_points, queue_lengths, label='Queue Length')
-    plt.xlabel('Time')
-    plt.ylabel('Queue Length')
-    plt.title('Queue Length Over Time')
+    plt.plot(time_points, queue_lengths, label='אורך תור (Queue Length)')
+    plt.xlabel('זמן (Time)')
+    plt.ylabel('אורך תור (Queue Length)')
+    plt.title('אורך התור לאורך זמן')
     plt.legend()
     st.pyplot(plt.gcf())
     plt.clf()
 
     # Plot Employee Utilization Over Time
     plt.figure(figsize=(14, 4))
-    plt.plot(time_points, employee_utilization, label='Employee Utilization (%)')
-    plt.xlabel('Time')
-    plt.ylabel('Utilization (%)')
-    plt.title('Employee Utilization Over Time')
+    plt.plot(time_points, employee_utilization, label='ניצולת עובדים (%)')
+    plt.xlabel('זמן (Time)')
+    plt.ylabel('ניצולת עובדים (%)')
+    plt.title('ניצולת עובדים לאורך זמן')
     plt.legend()
     st.pyplot(plt.gcf())
     plt.clf()
 
 # Encapsulate Streamlit app in a function
 def show():
-    st.title("Call Center Simulation")
+    st.title("סימולציית מרכז שירות לקוחות בזמן אמת")
 
-    # Slider inputs for simulation parameters
-    num_employees = st.slider("Number of Employees", min_value=1, max_value=10, value=3)
-    customer_interval = st.slider("Customer Arrival Rate (mean interval)", min_value=1, max_value=10, value=4)
-    call_duration_mean = st.slider("Call Duration Mean", min_value=1, max_value=10, value=8)
-    simulation_time = st.slider("Simulation Time (units)", min_value=100, max_value=1000, value=400)
+    # Slider inputs for simulation parameters (translated to Hebrew)
+    num_employees = st.slider("מספר נציגי שירות", min_value=1, max_value=10, value=3)
+    customer_interval = st.slider("זמן ממוצע בין הגעות לקוחות (בדקות)", min_value=1, max_value=10, value=4)
+    call_duration_mean = st.slider("משך שיחה ממוצע (בדקות)", min_value=1, max_value=10, value=8)
+    simulation_time = st.slider("זמן סימולציה (יחידות)", min_value=100, max_value=1000, value=400)
 
     # Display the selected parameters
-    st.write("### Selected Simulation Parameters:")
-    st.write(f"- Number of Employees: {num_employees}")
-    st.write(f"- Customer Arrival Rate (mean interval): {customer_interval} units")
-    st.write(f"- Call Duration Mean: {call_duration_mean} units")
-    st.write(f"- Simulation Time: {simulation_time} units")
+    st.write("### פרמטרים נבחרים לסימולציה:")
+    st.write(f"- מספר נציגי שירות: {num_employees}")
+    st.write(f"- זמן ממוצע בין הגעות לקוחות: {customer_interval} דקות")
+    st.write(f"- משך שיחה ממוצע: {call_duration_mean} דקות")
+    st.write(f"- זמן סימולציה: {simulation_time} יחידות")
+
+    # Placeholder for progress bar and real-time chart
+    progress_placeholder = st.empty()
+    chart_placeholder = st.empty()
 
     # Run simulation when button is pressed
-    if st.button("Run Simulation"):
+    if st.button("הפעל סימולציה"):
         avg_wait, queue_lengths, employee_utilization = run_simulation(
-            num_employees, customer_interval, call_duration_mean, simulation_time
+            num_employees, customer_interval, call_duration_mean, simulation_time, progress_placeholder, chart_placeholder
         )
 
         # Display the results
-        st.write(f"### Average Wait Time: {avg_wait:.2f} units")
-        st.write("### Queue Length and Employee Utilization Over Time")
+        st.write(f"### זמן המתנה ממוצע: {avg_wait:.2f} יחידות")
+        st.write("### אורך התור וניצולת עובדים לאורך זמן")
 
-        # Plot the metrics
-        plot_metrics(queue_lengths, employee_utilization, simulation_time)
+        # Plot the final metrics
+        plot_final_metrics(queue_lengths, employee_utilization, simulation_time)
 
 # This makes sure the app runs only when this file is executed directly
 if __name__ == "__main__":

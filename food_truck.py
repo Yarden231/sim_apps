@@ -1,8 +1,12 @@
 import simpy
 import numpy as np
 import streamlit as st
-from utils import set_rtl
-
+import pandas as pd
+import plotly.graph_objs as go
+from logger import EventLogger  # Assuming this handles event logging
+from utils import set_rtl  # RTL setting function
+import time  # Import the time module
+from utils import set_ltr_sliders
 # Call the set_rtl function to apply RTL styles
 set_rtl()
 
@@ -10,7 +14,7 @@ class FoodTruck:
     def __init__(self, env, order_time_min, order_time_max, config, logger):
         self.env = env
         self.logger = logger
-        self.event_log = []  # Adding event_log attribute
+        self.event_log = []
         self.order_station = simpy.Resource(env, capacity=config['order_capacity'])
         self.prep_station = simpy.Resource(env, capacity=config['prep_capacity'])
         self.pickup_station = simpy.Resource(env, capacity=config['pickup_capacity'])
@@ -98,22 +102,23 @@ class FoodTruck:
             self.total_visitors_over_time.append(self.total_visitors)
             yield self.env.timeout(1)
 
-# Update run_simulation and other functions if necessary to use the new log_event method.
+# Simulation function with real-time updates
 def run_simulation(sim_time, arrival_rate, order_time_min, order_time_max, leave_probability, config, logger):
-    # Run the simulation logic, ensuring data is being recorded
-    try:
-        env = simpy.Environment()
-        food_truck = FoodTruck(env, order_time_min, order_time_max, config, logger)
-        env.process(arrival_process(env, food_truck, arrival_rate, leave_probability))
-        env.process(food_truck.monitor())
-        env.run(until=sim_time)
-        print("סימולציה הסתיימה בהצלחה.")
-        return food_truck
-    except Exception as e:
-        print(f"שגיאה בהרצת הסימולציה: {e}")
-        return None
+    # Create a SimPy environment and FoodTruck object
+    env = simpy.Environment()
+    food_truck = FoodTruck(env, order_time_min, order_time_max, config, logger)
+    
+    # Start the customer arrival and monitoring processes
+    env.process(arrival_process(env, food_truck, arrival_rate, leave_probability))
+    env.process(food_truck.monitor())
+    
+    # Run the simulation for the given time
+    env.run(until=sim_time)
+    
+    return food_truck  # Return the completed FoodTruck object after the simulation ends
 
-# In food_truck.py or the relevant module
+
+# Customer arrival process
 def arrival_process(env, food_truck, arrival_rate, leave_probability):
     visitor_count = 0
     while True:
@@ -121,16 +126,7 @@ def arrival_process(env, food_truck, arrival_rate, leave_probability):
         visitor_count += 1
         env.process(visitor(env, visitor_count, food_truck, leave_probability))
 
-def run_simulation_with_speed(env,sim_time, arrival_rate, order_time_min, order_time_max, leave_probability, config, logger, speed):
-    food_truck = FoodTruck(env, order_time_min, order_time_max, config, logger)
-    env.process(arrival_process(env, food_truck, arrival_rate, leave_probability))
-    env.process(food_truck.monitor())
-    while env.now < sim_time:
-        env.step()
-        env.timeout(1 / speed)
-    return food_truck
-
-
+# Visitor service process
 def visitor(env, name, food_truck, leave_probability):
     food_truck.total_visitors += 1
     arrival_time = env.now
@@ -145,3 +141,104 @@ def visitor(env, name, food_truck, leave_probability):
     if len(food_truck.batch) >= 1:
         env.process(food_truck.process_batch())
 
+# Plot real-time queue animation
+def plot_real_time_queues(food_truck, step):
+    df = pd.DataFrame({
+        'Time': range(len(food_truck.queue_sizes['order'])),
+        'Order Queue': food_truck.queue_sizes['order'],
+        'Prep Queue': food_truck.queue_sizes['prep'],
+        'Pickup Queue': food_truck.queue_sizes['pickup'],
+        'Total Queue': food_truck.queue_sizes['total']
+    })
+
+    # Get current queue sizes for the title
+    current_order_queue = df['Order Queue'].iloc[step]
+    current_prep_queue = df['Prep Queue'].iloc[step]
+    current_pickup_queue = df['Pickup Queue'].iloc[step]
+    current_total_queue = df['Total Queue'].iloc[step]
+
+    fig = go.Figure(data=[
+        go.Bar(x=['Order Queue', 'Prep Queue', 'Pickup Queue', 'Total Queue'], 
+               y=[current_order_queue, current_prep_queue, current_pickup_queue, current_total_queue],
+               marker=dict(color=['blue', 'green', 'red', 'black']))
+    ])
+
+    # Update the layout with dynamic title including current queue sizes
+    fig.update_layout(
+        title=f"Queue Status at Step {step}: \n Order Queue={current_order_queue}, \n Prep Queue={current_prep_queue}, \n Pickup Queue={current_pickup_queue}, \n Total Queue={current_total_queue}",
+        xaxis_title="Queue Type",
+        yaxis_title="Queue Size",
+        yaxis=dict(range=[0, max(df['Total Queue'])])  # Set y-axis limit based on total queue sizes
+    )
+    return fig
+
+# Plot queue sizes over time after the simulation
+def plot_queue_sizes_over_time(food_truck):
+    df = pd.DataFrame({
+        'Time': range(len(food_truck.queue_sizes['order'])),
+        'Order Queue': food_truck.queue_sizes['order'],
+        'Prep Queue': food_truck.queue_sizes['prep'],
+        'Pickup Queue': food_truck.queue_sizes['pickup'],
+        'Total Queue': food_truck.queue_sizes['total']
+    })
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df['Time'], y=df['Order Queue'], mode='lines', name='Order Queue', line=dict(color='blue')))
+    fig.add_trace(go.Scatter(x=df['Time'], y=df['Prep Queue'], mode='lines', name='Prep Queue', line=dict(color='green')))
+    fig.add_trace(go.Scatter(x=df['Time'], y=df['Pickup Queue'], mode='lines', name='Pickup Queue', line=dict(color='red')))
+    fig.add_trace(go.Scatter(x=df['Time'], y=df['Total Queue'], mode='lines', name='Total Queue', line=dict(color='black', width=4)))
+
+    fig.update_layout(
+        title="Queue Sizes Over Time",
+        xaxis_title="Time",
+        yaxis_title="Queue Size",
+        legend_title="Queue Type"
+    )
+    return fig
+
+
+# Main Streamlit app
+def show_food_truck():
+    set_ltr_sliders()  # Inject the CSS to ensure LTR behavior for the sliders
+    st.title("סימולציית משאית מזון בזמן אמת")
+
+    st.header("הגדרות סימולציה")
+    sim_time = st.slider("זמן סימולציה (דקות)", 100, 10000, 100)
+    arrival_rate = st.slider("זמן ממוצע בין הגעות לקוחות (דקות)", 5, 20, 1)
+    order_time_min = st.slider("זמן הזמנה מינימלי (דקות)", 1, 5, 1)
+    order_time_max = st.slider("זמן הזמנה מקסימלי (דקות)", 5, 10, 1)
+    leave_probability = st.slider("הסתברות לעזיבה לפני הזמנה", 0.0, 0.5, 0.1)
+    
+    config = {
+        'order_capacity': st.slider("כמות עמדות בהזמנה", 1, 5, 1),
+        'prep_capacity': st.slider("כמות עמדות בהכנה", 1, 5, 1),
+        'pickup_capacity': st.slider("כמות עמדות באיסוף", 1, 5, 1)
+    }
+
+    if st.button("הפעל סימולציה"):
+        with st.spinner("מריץ סימולציה בזמן אמת..."):
+            logger = EventLogger()
+
+            # Run the simulation and get the completed FoodTruck object
+            food_truck = run_simulation(sim_time, arrival_rate, order_time_min, order_time_max, leave_probability, config, logger)
+
+            # Placeholder for real-time chart
+            real_time_chart = st.empty()
+
+            # Update the chart in real time with the queue sizes from the simulation
+            for step in range(len(food_truck.queue_sizes['order'])):
+                chart = plot_real_time_queues(food_truck, step)
+                real_time_chart.plotly_chart(chart, use_container_width=True)
+                time.sleep(0.1)  # Speed control for real-time updates
+            
+            st.success("הסימולציה בזמן אמת הושלמה!")
+
+            # After the simulation, plot the queue sizes over time
+            st.header(" גודל התורים כפונקציה של זמן הסימולציה:")
+            queue_size_over_time_chart = plot_queue_sizes_over_time(food_truck)
+            st.plotly_chart(queue_size_over_time_chart, use_container_width=True)
+
+
+
+if __name__ == "__main__":
+    show_food_truck()

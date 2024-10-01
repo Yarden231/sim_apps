@@ -8,6 +8,7 @@ from utils import set_rtl
 
 # Call the set_rtl function to apply RTL styles
 set_rtl()
+
 def sample_uniform(a, b):
     return a + (b - a) * random.random()
 
@@ -48,11 +49,12 @@ def plot_histogram(samples, title, distribution_func=None, true_density=None):
     ax.legend()
     return fig
 
-def plot_boxplot(samples, title):
+def plot_qqplot(samples, title):
     fig, ax = plt.subplots(figsize=(6, 3))  # Reduce the size of the plots
-    ax.boxplot(samples, vert=False)
-    ax.set_title(f"{title} - Boxplot")
-    ax.set_xlabel("Value")
+    stats.probplot(samples, dist="norm", plot=ax)
+    ax.set_title(f"{title} - QQ Plot")
+    ax.set_xlabel("Theoretical Quantiles")
+    ax.set_ylabel("Sample Quantiles")
     return fig
 
 def display_statistics(samples):
@@ -68,12 +70,12 @@ def display_statistics(samples):
     st.write(f"**Minimum Value:** {min_val:.2f}")
     st.write(f"**Maximum Value:** {max_val:.2f}")
 
-def run_sampling(sampling_function, num_samples, update_interval, title, progress_bar, plot_placeholder, boxplot_placeholder, stats_placeholder, print_samples, distribution_func=None, true_density=None):
+def run_sampling(sampling_function, num_samples, update_interval, title, progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples, distribution_func=None, true_density=None):
     samples = []
     for i in range(num_samples):
         samples.append(sampling_function())
         if (i + 1) % update_interval == 0 or i == num_samples - 1:
-            # Update histograms and boxplots side by side
+            # Update histograms and QQ plots side by side
             with plot_placeholder.container():
                 col1, col2 = st.columns(2)
                 with col1:
@@ -81,9 +83,9 @@ def run_sampling(sampling_function, num_samples, update_interval, title, progres
                     st.pyplot(fig)
                     plt.close(fig)
                 with col2:
-                    boxplot_fig = plot_boxplot(samples, title)
-                    st.pyplot(boxplot_fig)
-                    plt.close(boxplot_fig)
+                    qqplot_fig = plot_qqplot(samples, title)
+                    st.pyplot(qqplot_fig)
+                    plt.close(qqplot_fig)
 
             # Update statistics
             stats_placeholder.empty()
@@ -120,41 +122,45 @@ def show_sampling_methods():
 
     if st.session_state.selected_sampling == 'uniform':
         st.header("1. התפלגות אחידה")
+        st.latex(r"f(x) = \frac{1}{b-a}, \quad a \leq x \leq b")
         a = st.slider("ערך מינימלי (a)", 0.0, 1.0, 0.0)
         b = st.slider("ערך מקסימלי (b)", a + 0.1, 1.0, 1.0)
         progress_bar = st.progress(0)
         plot_placeholder = st.empty()
-        boxplot_placeholder = st.empty()
+        qqplot_placeholder = st.empty()
         stats_placeholder = st.empty()
         true_density = lambda x: np.ones_like(x) / (b - a)
-        run_sampling(lambda: sample_uniform(a, b), num_samples, update_interval, "Uniform Distribution", progress_bar, plot_placeholder, boxplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
+        run_sampling(lambda: sample_uniform(a, b), num_samples, update_interval, "Uniform Distribution", progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
 
     elif st.session_state.selected_sampling == 'exponential':
         st.header("2. התפלגות מעריכית")
+        st.latex(r"f(x) = \lambda e^{-\lambda x}, \quad x \geq 0")
         lambda_param = st.slider("פרמטר למבדא", 0.1, 5.0, 1.0)
         progress_bar = st.progress(0)
         plot_placeholder = st.empty()
-        boxplot_placeholder = st.empty()
+        qqplot_placeholder = st.empty()
         stats_placeholder = st.empty()
         true_density = lambda x: lambda_param * np.exp(-lambda_param * x)
-        run_sampling(lambda: sample_exponential(lambda_param), num_samples, update_interval, "Exponential Distribution", progress_bar, plot_placeholder, boxplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
+        run_sampling(lambda: sample_exponential(lambda_param), num_samples, update_interval, "Exponential Distribution", progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
 
     elif st.session_state.selected_sampling == 'composite':
         st.header("3. התפלגות מורכבת")
+        st.latex(r"f(x) = 0.2 \cdot N(0, 1) + 0.8 \cdot N(3, 1)")
         progress_bar = st.progress(0)
         plot_placeholder = st.empty()
-        boxplot_placeholder = st.empty()
+        qqplot_placeholder = st.empty()
         stats_placeholder = st.empty()
         true_density = lambda x: 0.2 * stats.norm.pdf(x, 0, 1) + 0.8 * stats.norm.pdf(x, 3, 1)
-        run_sampling(sample_composite_distribution, num_samples, update_interval, "Composite Distribution", progress_bar, plot_placeholder, boxplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
+        run_sampling(sample_composite_distribution, num_samples, update_interval, "Composite Distribution", progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
 
     elif st.session_state.selected_sampling == 'acceptance_rejection':
         st.header("4. שיטת הקבלה-דחייה")
+        st.latex(r"f(x) = 3x^2, \quad 0 \leq x \leq 1")
         progress_bar = st.progress(0)
         plot_placeholder = st.empty()
-        boxplot_placeholder = st.empty()
+        qqplot_placeholder = st.empty()
         stats_placeholder = st.empty()
-        run_sampling(sample_acceptance_rejection, num_samples, update_interval, "Acceptance-Rejection Method", progress_bar, plot_placeholder, boxplot_placeholder, stats_placeholder, print_samples=True, distribution_func=f)
+        run_sampling(sample_acceptance_rejection, num_samples, update_interval, "Acceptance-Rejection Method", progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=True, distribution_func=f)
 
 if __name__ == "__main__":
     show_sampling_methods()
