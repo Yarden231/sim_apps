@@ -133,7 +133,7 @@ def plot_final_metrics(call_center):
     return fig
 
 # Main simulation function with real-time updates
-def run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time, real_time_chart):
+def run_simulation(num_employees, customer_interval, call_duration_mean):
     env = simpy.Environment()
     call_center = CallCenter(env, num_employees)
     env.process(generate_customers(env, call_center, customer_interval, call_duration_mean))
@@ -161,7 +161,7 @@ def show():
             # Create placeholder for real-time chart
             
             # Run the simulation
-            call_center = run_simulation(num_employees, customer_interval, call_duration_mean, simulation_time, real_time_chart)
+            call_center = run_simulation(num_employees, customer_interval, call_duration_mean)
             
             real_time_chart = st.empty()
 
