@@ -94,18 +94,17 @@ def generate_customers(env, call_center, interval, call_duration_mean):
 # Real-time plot for live queue updates
 def plot_real_time_queues(call_center, step):
     queue_size = call_center.queue_lengths[step] if step < len(call_center.queue_lengths) else 0
-    utilization = call_center.employee_utilization[step] * 100 if step < len(call_center.employee_utilization) else 0
 
     fig = go.Figure(data=[
-        go.Bar(x=['Queue Size', 'Employee Utilization (%)'],
-               y=[queue_size, utilization],
-               marker=dict(color=['blue', 'green']))
+        go.Bar(x=['Queue Size'],
+               y=[queue_size],
+               marker=dict(color=['pink']))
     ])
 
     fig.update_layout(
-        title=f"Real-Time Metrics at Step {step}",
-        xaxis_title="Metric",
-        yaxis_title="Value",
+        title=f"Real-Time Queue Size at Step {step}",
+        xaxis_title="Queue",
+        yaxis_title="Queue Size",
         yaxis=dict(range=[0, 100])
     )
     return fig
