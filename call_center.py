@@ -6,6 +6,7 @@ import plotly.graph_objs as go
 import time
 from utils import set_rtl  
 from utils import set_ltr_sliders
+import pandas as pd
 
 # Simulation Classes and Functions
 class Employee:
