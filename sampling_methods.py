@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from scipy import stats
 from utils import set_rtl
 from utils import set_ltr_sliders
-
+import time
 # Call the set_rtl function to apply RTL styles
 set_rtl()
 
@@ -113,7 +113,7 @@ def run_sampling(sampling_function, num_samples, update_interval, title, progres
         progress_bar.progress((i + update_interval) / num_samples)
         
         # Delay to simulate real-time sampling (optional)
-        st.sleep(0.1)
+        time.sleep(0.01)
 
 def show_sampling_methods():
     st.title("הדגמה של שיטות דגימה שונות")
