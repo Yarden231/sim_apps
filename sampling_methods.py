@@ -32,8 +32,8 @@ def sample_acceptance_rejection():
             return x
 
 def plot_histogram(samples, title, distribution_func=None, true_density=None):
-    fig, ax = plt.subplots(figsize=(6, 3))  # Reduce the size of the plots
-    n, bins, _ = ax.hist(samples, bins=30, density=True, alpha=0.7, label='Sampled Data')
+    fig, ax = plt.subplots(figsize=(6, 4))  # Fixed figure size
+    ax.hist(samples, bins=30, density=True, alpha=0.7, label='Sampled Data')
     ax.set_title(f"{title} (Number of samples: {len(samples)})")
     ax.set_xlabel("Value")
     ax.set_ylabel("Density")
@@ -45,16 +45,19 @@ def plot_histogram(samples, title, distribution_func=None, true_density=None):
     if distribution_func:
         x = np.linspace(0, 1, 100)
         ax.plot(x, distribution_func(x), 'g--', lw=2, label='Target Distribution')
-    
-    ax.legend()
+
+    ax.legend(loc='upper right')  # Fixed legend location
+    ax.set_xlim([min(samples), max(samples)])  # Set axis limits
+    ax.grid(True)  # Add grid for clarity
     return fig
 
 def plot_qqplot(samples, title):
-    fig, ax = plt.subplots(figsize=(6, 3))  # Reduce the size of the plots
+    fig, ax = plt.subplots(figsize=(6, 4))  # Fixed figure size
     stats.probplot(samples, dist="norm", plot=ax)
     ax.set_title(f"{title} - QQ Plot")
     ax.set_xlabel("Theoretical Quantiles")
     ax.set_ylabel("Sample Quantiles")
+    ax.grid(True)  # Add grid for clarity
     return fig
 
 def display_statistics(samples):
