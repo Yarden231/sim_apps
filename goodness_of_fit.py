@@ -22,20 +22,28 @@ def generate_random_samples(sample_size):
         samples = np.random.exponential(scale=1/lam, size=sample_size)
         return samples, 'Exponential', (lam,)
 
-def visualize_samples(samples):
-    """Display histograms and QQ plots of the given samples in a grid."""
-    st.subheader("Histogram and QQ-Plot")
+def visualize_samples_and_qqplots(samples):
+    """Display histograms and QQ plots of the given samples for three distributions in a grid."""
+    st.subheader("Histogram and QQ-Plots for Three Distributions")
 
-    # Create a grid of 1x2 (for histogram and QQ-plot)
-    fig, axs = plt.subplots(1, 2, figsize=(12, 4))  # Adjust the size to fit the page width
+    # Create a grid of 2x2 (for histogram and QQ-plots)
+    fig, axs = plt.subplots(2, 2, figsize=(12, 8))  # Adjust the size to fit the page width
 
     # Histogram
-    sns.histplot(samples, kde=True, ax=axs[0])
-    axs[0].set_title('Histogram of Samples')
+    sns.histplot(samples, kde=True, ax=axs[0, 0])
+    axs[0, 0].set_title('Histogram of Samples')
 
-    # QQ-Plot
-    stats.probplot(samples, dist="norm", plot=axs[1])
-    axs[1].set_title('QQ-Plot against Normal Distribution')
+    # QQ-Plot for Normal Distribution
+    stats.probplot(samples, dist="norm", plot=axs[0, 1])
+    axs[0, 1].set_title('QQ-Plot against Normal Distribution')
+
+    # QQ-Plot for Uniform Distribution
+    stats.probplot(samples, dist="uniform", plot=axs[1, 0])
+    axs[1, 0].set_title('QQ-Plot against Uniform Distribution')
+
+    # QQ-Plot for Exponential Distribution
+    stats.probplot(samples, dist="expon", plot=axs[1, 1])
+    axs[1, 1].set_title('QQ-Plot against Exponential Distribution')
 
     # Adjust layout to avoid overlap
     plt.tight_layout()
@@ -135,9 +143,9 @@ def show():
         st.session_state.true_params = true_params
         st.write(f"Generated samples from a hidden {true_distribution} distribution.")
 
-    # Display the samples if they exist
+    # Display the samples and QQ-plots if they exist
     if 'samples' in st.session_state:
-        visualize_samples(st.session_state.samples)
+        visualize_samples_and_qqplots(st.session_state.samples)
 
         # Step 2: User selects the distribution they believe the samples come from
         st.subheader("Select the Distribution You Believe the Samples Come From")
