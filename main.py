@@ -21,6 +21,7 @@ from call_center import show as show_call_center
 from food_truck import show_food_truck
 from logger import EventLogger
 from sampling_methods import show_sampling_methods
+from  goodness_of_fit import show as show_googness
 
 
 def main():
@@ -93,6 +94,7 @@ def main():
     pages = {
         "דף הבית": show_home,
         "תיאוריה": show_theory,
+        "התאמת התפלגות למודל": show_googness,
         "סימולציית מוקד שירות": show_call_center,
         "סימולציית משאית מזון": show_food_truck,
         "שיטות דגימה": show_sampling_methods,
