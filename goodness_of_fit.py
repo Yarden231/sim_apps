@@ -3,7 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as stats
+from utils import set_ltr_sliders
 
+set_ltr_sliders()
 def generate_random_samples(sample_size):
     """Generate samples from a random distribution with random parameters."""
     distribution = np.random.choice(['normal', 'uniform', 'exponential'])
