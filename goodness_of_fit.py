@@ -71,31 +71,62 @@ def plot_likelihood(samples, distribution):
     st.subheader("Likelihood Function Plot")
 
     if distribution == 'Normal':
-        # Plot likelihood as a function of μ for fixed σ
+        # Two parameters: μ and σ
         mu_vals = np.linspace(np.mean(samples) - 3, np.mean(samples) + 3, 100)
-        sigma = np.std(samples)
-        likelihoods = [np.sum(stats.norm.logpdf(samples, loc=mu, scale=sigma)) for mu in mu_vals]
+        sigma_vals = np.linspace(np.std(samples) * 0.5, np.std(samples) * 1.5, 100)
 
-        fig, ax = plt.subplots()
-        ax.plot(mu_vals, likelihoods)
-        ax.set_title('Log-Likelihood as a function of μ (Normal Distribution)')
-        ax.set_xlabel('μ')
-        ax.set_ylabel('Log-Likelihood')
+        # Likelihood as a function of μ for fixed σ
+        likelihood_mu = [np.sum(stats.norm.logpdf(samples, loc=mu, scale=np.std(samples))) for mu in mu_vals]
+        # Likelihood as a function of σ for fixed μ
+        likelihood_sigma = [np.sum(stats.norm.logpdf(samples, loc=np.mean(samples), scale=sigma)) for sigma in sigma_vals]
+
+        # Create a grid for the likelihood plots
+        fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+
+        # Plot likelihood for μ
+        axs[0].plot(mu_vals, likelihood_mu)
+        axs[0].set_title('Log-Likelihood as a function of μ')
+        axs[0].set_xlabel('μ')
+        axs[0].set_ylabel('Log-Likelihood')
+
+        # Plot likelihood for σ
+        axs[1].plot(sigma_vals, likelihood_sigma)
+        axs[1].set_title('Log-Likelihood as a function of σ')
+        axs[1].set_xlabel('σ')
+        axs[1].set_ylabel('Log-Likelihood')
+
         st.pyplot(fig)
 
     elif distribution == 'Uniform':
-        # Plot likelihood as a function of a and b for a uniform distribution
+        # Two parameters: a and b
         a_vals = np.linspace(np.min(samples) - 1, np.min(samples) + 1, 100)
         b_vals = np.linspace(np.max(samples) - 1, np.max(samples) + 1, 100)
+
         likelihoods = np.array([[np.sum(stats.uniform.logpdf(samples, loc=a, scale=b - a))
                                  for b in b_vals] for a in a_vals])
 
-        fig, ax = plt.subplots()
+        # Plot the likelihood as a contour plot
+        fig, ax = plt.subplots(figsize=(8, 6))
         c = ax.contourf(a_vals, b_vals, likelihoods.T, levels=50, cmap="viridis")
         fig.colorbar(c)
         ax.set_title('Log-Likelihood Contour (Uniform Distribution)')
         ax.set_xlabel('a')
         ax.set_ylabel('b')
+
+        st.pyplot(fig)
+
+    elif distribution == 'Exponential':
+        # One parameter: λ
+        lambda_vals = np.linspace(0.1, 2, 100)
+        likelihood_lambda = [np.sum(stats.expon.logpdf(samples, scale=1/lambda_val)) for lambda_val in lambda_vals]
+
+        # Plot the likelihood for λ
+        fig, ax = plt.subplots(figsize=(8, 6))
+        ax.plot(lambda_vals, likelihood_lambda)
+        ax.set_title('Log-Likelihood as a function of λ')
+        ax.set_xlabel('λ')
+        ax.set_ylabel('Log-Likelihood')
+
         st.pyplot(fig)
 
 def perform_goodness_of_fit(samples, distribution, params):
@@ -175,4 +206,5 @@ def show():
             perform_goodness_of_fit(st.session_state.samples, distribution_choice, params)
 
 # To show the app, call the show() function
-show()
+if __name__ == "__main__":
+    show()
