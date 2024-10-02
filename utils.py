@@ -16,6 +16,8 @@ def set_rtl():
         unsafe_allow_html=True
     )
 
+
+
 # Inject CSS to apply LTR for sliders while keeping the overall page RTL
 def set_ltr_sliders():
     st.markdown(
@@ -27,14 +29,14 @@ def set_ltr_sliders():
         }
         
         /* Set the sliders to LTR */
-        [data-baseweb="slider"] {
+        .stMarkdown, .stSlider, .stLatex {
             direction: ltr;
         }
         </style>
         """,
         unsafe_allow_html=True
     )
-    
+
 def create_custom_chart(data):
     # Implement custom chart creation logic
     pass
