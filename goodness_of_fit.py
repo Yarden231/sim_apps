@@ -98,11 +98,12 @@ def plot_likelihood(samples, distribution):
         st.pyplot(fig)
 
     elif distribution == 'Uniform':
-        # Two parameters: a and b
-        a_vals = np.linspace(np.min(samples) - 1, np.min(samples) + 1, 100)
-        b_vals = np.linspace(np.max(samples) - 1, np.max(samples) + 1, 100)
+        # Two parameters: a and b, ensure that a < b
+        a_vals = np.linspace(np.min(samples) - 1, np.max(samples) - 0.1, 100)
+        b_vals = np.linspace(np.min(samples) + 0.1, np.max(samples) + 1, 100)
 
         likelihoods = np.array([[np.sum(stats.uniform.logpdf(samples, loc=a, scale=b - a))
+                                 if b > a else -np.inf  # Ensuring b > a
                                  for b in b_vals] for a in a_vals])
 
         # Plot the likelihood as a contour plot
