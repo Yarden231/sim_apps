@@ -149,9 +149,21 @@ def show():
 
         # Step 2: User selects the distribution they believe the samples come from
         st.subheader("Select the Distribution You Believe the Samples Come From")
-        distribution_choice = st.radio("Choose a distribution family", ["Normal", "Exponential", "Uniform"])
 
+        # Three buttons for user to select the distribution
+        if st.button("Normal Distribution"):
+            distribution_choice = 'Normal'
+        elif st.button("Exponential Distribution"):
+            distribution_choice = 'Exponential'
+        elif st.button("Uniform Distribution"):
+            distribution_choice = 'Uniform'
+        else:
+            distribution_choice = None
+
+        # If the user has selected a distribution, proceed to the next steps
         if distribution_choice:
+            st.write(f"You selected: {distribution_choice}")
+
             # Step 3: Maximum Likelihood Estimation for chosen distribution
             st.subheader("Maximum Likelihood Estimation")
             params = estimate_parameters(st.session_state.samples, distribution_choice)
