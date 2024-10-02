@@ -3,9 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as stats
-from utils import set_ltr_sliders
 
-set_ltr_sliders()
 def generate_random_samples(sample_size):
     """Generate samples from a random distribution with random parameters."""
     distribution = np.random.choice(['normal', 'uniform', 'exponential'])
@@ -25,19 +23,24 @@ def generate_random_samples(sample_size):
         return samples, 'Exponential', (lam,)
 
 def visualize_samples(samples):
-    """Display histograms and QQ plots of the given samples."""
+    """Display histograms and QQ plots of the given samples in a grid."""
     st.subheader("Histogram and QQ-Plot")
 
+    # Create a grid of 1x2 (for histogram and QQ-plot)
+    fig, axs = plt.subplots(1, 2, figsize=(12, 4))  # Adjust the size to fit the page width
+
     # Histogram
-    fig, ax = plt.subplots()
-    sns.histplot(samples, kde=True, ax=ax)
-    ax.set_title('Histogram of Samples')
-    st.pyplot(fig)
+    sns.histplot(samples, kde=True, ax=axs[0])
+    axs[0].set_title('Histogram of Samples')
 
     # QQ-Plot
-    fig, ax = plt.subplots()
-    stats.probplot(samples, dist="norm", plot=ax)
-    ax.set_title('QQ-Plot against Normal Distribution')
+    stats.probplot(samples, dist="norm", plot=axs[1])
+    axs[1].set_title('QQ-Plot against Normal Distribution')
+
+    # Adjust layout to avoid overlap
+    plt.tight_layout()
+
+    # Display the figure
     st.pyplot(fig)
 
 def estimate_parameters(samples, distribution):
@@ -92,21 +95,31 @@ def perform_goodness_of_fit(samples, distribution, params):
     st.subheader("Goodness of Fit Tests")
 
     # Chi-Square Test
-    if distribution == 'Normal':
-        observed_freq, bins = np.histogram(samples, bins='auto')
-        expected_freq = stats.norm.pdf((bins[:-1] + bins[1:]) / 2, *params) * len(samples)
-        chi_square, p_val_chi = stats.chisquare(observed_freq, expected_freq)
-        st.write(f"Chi-Square Test: statistic={chi_square}, p-value={p_val_chi}")
+    try:
+        if distribution == 'Normal':
+            observed_freq, bins = np.histogram(samples, bins='auto')
+            expected_freq = stats.norm.pdf((bins[:-1] + bins[1:]) / 2, *params) * len(samples)
 
-    # KS Test
-    if distribution == 'Normal':
-        ks_stat, p_val_ks = stats.kstest(samples, 'norm', args=params)
-    elif distribution == 'Exponential':
-        ks_stat, p_val_ks = stats.kstest(samples, 'expon', args=(0, 1 / params[0]))
-    elif distribution == 'Uniform':
-        ks_stat, p_val_ks = stats.kstest(samples, 'uniform', args=params)
+            if len(observed_freq) != len(expected_freq):
+                raise ValueError("Observed and expected frequencies must have the same length.")
 
-    st.write(f"KS Test: statistic={ks_stat}, p-value={p_val_ks}")
+            expected_freq = np.clip(expected_freq, 1e-8, None)
+
+            chi_square, p_val_chi = stats.chisquare(observed_freq, expected_freq)
+            st.write(f"Chi-Square Test: statistic={chi_square}, p-value={p_val_chi}")
+
+        # KS Test
+        if distribution == 'Normal':
+            ks_stat, p_val_ks = stats.kstest(samples, 'norm', args=params)
+        elif distribution == 'Exponential':
+            ks_stat, p_val_ks = stats.kstest(samples, 'expon', args=(0, 1 / params[0]))
+        elif distribution == 'Uniform':
+            ks_stat, p_val_ks = stats.kstest(samples, 'uniform', args=params)
+
+        st.write(f"KS Test: statistic={ks_stat}, p-value={p_val_ks}")
+
+    except ValueError as e:
+        st.error(f"Error during goodness of fit tests: {e}")
 
 def show():
     """Display the distribution fitting and goodness-of-fit testing page."""
@@ -142,5 +155,4 @@ def show():
             perform_goodness_of_fit(st.session_state.samples, distribution_choice, params)
 
 # To show the app, call the show() function
-if __name__ == "__main__":
-    show()
+show()
