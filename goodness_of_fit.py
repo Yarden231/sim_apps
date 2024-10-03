@@ -137,14 +137,18 @@ def perform_goodness_of_fit(samples, distribution, params):
     # Chi-Square Test
     try:
         if distribution == 'Normal':
+            # Create the observed frequency from samples
             observed_freq, bins = np.histogram(samples, bins='auto')
-            expected_freq = stats.norm.pdf((bins[:-1] + bins[1:]) / 2, *params) * len(samples)
+            # Calculate midpoints of bins
+            bin_midpoints = (bins[:-1] + bins[1:]) / 2
+            # Generate expected frequencies based on normal distribution and scale them
+            expected_freq = stats.norm.pdf(bin_midpoints, *params) * len(samples) * np.diff(bins)
 
-            if len(observed_freq) != len(expected_freq):
-                raise ValueError("Observed and expected frequencies must have the same length.")
+            # Ensure that observed and expected frequencies have the same total sum
+            if not np.isclose(observed_freq.sum(), expected_freq.sum(), rtol=1e-8):
+                expected_freq *= observed_freq.sum() / expected_freq.sum()
 
-            expected_freq = np.clip(expected_freq, 1e-8, None)
-
+            # Perform the Chi-Square test
             chi_square, p_val_chi = stats.chisquare(observed_freq, expected_freq)
             st.write(f"Chi-Square Test: statistic={chi_square}, p-value={p_val_chi}")
 
