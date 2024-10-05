@@ -45,7 +45,7 @@ def lcg_method(a, c, m, seed, n):
 
 def plot_histogram_of_samples(ui_values, method_name):
     """Plot histogram of generated random numbers (U_i values)."""
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(8, 4))
 
     # Plot histogram of all U_i values
     sns.histplot(ui_values, bins=20, kde=True, ax=ax, color='orange')
