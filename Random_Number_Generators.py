@@ -33,14 +33,23 @@ def mid_square_method(seed, n):
     return results
 
 def lcg_method(a, c, m, seed, n):
-    """Generate random numbers using Linear Congruential Generator."""
-    results = []
-    for i in range(n):
-        next_seed = (a * seed + c) % m
-        u = next_seed / m  # Generate U_i
-        results.append((seed, u))
-        seed = next_seed
-    return results
+    """Generate random numbers using Linear Congruential Generator with NumPy vectorization."""
+    # Pre-allocate arrays for performance
+    Z = np.zeros(n, dtype=int)  # Array to store Z_i values
+    U = np.zeros(n, dtype=float)  # Array to store U_i values
+
+    # Set the initial seed
+    Z[0] = seed
+
+    # Generate Z values using vectorized recurrence relation
+    for i in range(1, n):
+        Z[i] = (a * Z[i - 1] + c) % m
+
+    # Generate U values (normalized Z values between [0, 1])
+    U = Z / m
+
+    # Return the results as a list of tuples
+    return list(zip(Z, U))
 
 
 def plot_histogram_of_samples(ui_values, method_name):
@@ -68,7 +77,7 @@ def show_random_generator():
     if st.button("Generate Mid-Square Numbers"):
         mid_square_results = mid_square_method(seed_ms, n_ms)
         st.write("Mid-Square Method Results (First 10 numbers):")
-        for i, (zi, ui) in enumerate(mid_square_results[:10]):  # Show first 10 results for brevity
+        for i, (zi, ui) in enumerate(mid_square_results):  # Show first 10 results for brevity
             st.write(f"Z_{i} = {zi}, U_{i} = {ui:.4f}")
 
         # Extract U_i values for the histogram
@@ -89,7 +98,7 @@ def show_random_generator():
     if st.button("Generate LCG Numbers"):
         lcg_results = lcg_method(a, c, m, seed_lcg, n_lcg)
         st.write("LCG Results (First 10 numbers):")
-        for i, (zi, ui) in enumerate(lcg_results[:10]):  # Show first 10 results for brevity
+        for i, (zi, ui) in enumerate(lcg_results):  # Show first 10 results for brevity
             st.write(f"Z_{i} = {zi}, U_{i} = {ui:.4f}")
 
         # Extract U_i values for the histogram
