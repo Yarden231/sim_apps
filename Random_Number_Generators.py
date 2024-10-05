@@ -25,25 +25,15 @@ def lcg_method(a, c, m, seed, n):
         seed = next_seed
     return results
 
-def plot_random_numbers(results, method_name):
-    """Plot the generated random numbers."""
-    zi_values = [zi for zi, _ in results]
-    ui_values = [ui for _, ui in results]
+def plot_histogram_of_samples(ui_values, method_name):
+    """Plot histogram of generated random numbers (U_i values)."""
+    fig, ax = plt.subplots(figsize=(8, 6))
 
-    # Create a figure with two subplots
-    fig, axs = plt.subplots(1, 2, figsize=(12, 6))
-
-    # Plot U_i values over time (iteration)
-    axs[0].plot(ui_values, marker='o', linestyle='-', color='blue')
-    axs[0].set_title(f"{method_name}: U_i Over Iterations")
-    axs[0].set_xlabel('Iteration')
-    axs[0].set_ylabel('U_i')
-
-    # Plot histogram of U_i values to show the distribution
-    sns.histplot(ui_values, bins=10, kde=True, ax=axs[1], color='orange')
-    axs[1].set_title(f"{method_name}: Distribution of U_i")
-    axs[1].set_xlabel('U_i')
-    axs[1].set_ylabel('Frequency')
+    # Plot histogram of all U_i values
+    sns.histplot(ui_values, bins=20, kde=True, ax=ax, color='orange')
+    ax.set_title(f"{method_name}: Histogram of All Generated U_i")
+    ax.set_xlabel('U_i')
+    ax.set_ylabel('Frequency')
 
     st.pyplot(fig)
 
@@ -59,10 +49,13 @@ def show_random_generator():
 
     if st.button("Generate Mid-Square Numbers"):
         mid_square_results = mid_square_method(seed_ms, n_ms)
-        st.write("Mid-Square Method Results:")
+        st.write("Mid-Square Method Results (First 10 numbers):")
         for i, (zi, ui) in enumerate(mid_square_results[:10]):  # Show first 10 results for brevity
             st.write(f"Z_{i} = {zi}, U_{i} = {ui:.4f}")
-        plot_random_numbers(mid_square_results, "Mid-Square Method")
+
+        # Extract U_i values for the histogram
+        ui_values = [ui for _, ui in mid_square_results]
+        plot_histogram_of_samples(ui_values, "Mid-Square Method")
 
     # Linear Congruential Generator (LCG)
     st.subheader("Linear Congruential Generator (LCG)")
@@ -74,10 +67,13 @@ def show_random_generator():
 
     if st.button("Generate LCG Numbers"):
         lcg_results = lcg_method(a, c, m, seed_lcg, n_lcg)
-        st.write("LCG Results:")
+        st.write("LCG Results (First 10 numbers):")
         for i, (zi, ui) in enumerate(lcg_results[:10]):  # Show first 10 results for brevity
             st.write(f"Z_{i} = {zi}, U_{i} = {ui:.4f}")
-        plot_random_numbers(lcg_results, "LCG Method")
+
+        # Extract U_i values for the histogram
+        ui_values = [ui for _, ui in lcg_results]
+        plot_histogram_of_samples(ui_values, "LCG Method")
 
 if __name__ == "__main__":
     show_random_generator()
