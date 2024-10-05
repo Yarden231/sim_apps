@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as stats
+from utils import set_rtl, set_ltr_sliders
+
 
 def generate_random_samples(sample_size):
     """Generate samples from a random distribution with random parameters."""
@@ -166,6 +168,8 @@ def perform_goodness_of_fit(samples, distribution, params):
         st.error(f"Error during goodness of fit tests: {e}")
 
 def show():
+    set_rtl()
+    set_ltr_sliders()  # Ensure sliders are LTR
     """Display the distribution fitting and goodness-of-fit testing page."""
     st.title("Distribution Fitting and Goodness-of-Fit Tests")
 
