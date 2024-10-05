@@ -104,17 +104,30 @@ def plot_likelihood(samples, distribution):
         a_vals = np.linspace(np.min(samples) - 1, np.max(samples) - 0.1, 100)
         b_vals = np.linspace(np.min(samples) + 0.1, np.max(samples) + 1, 100)
 
-        likelihoods = np.array([[np.sum(stats.uniform.logpdf(samples, loc=a, scale=b - a))
-                                 if b > a else -np.inf  # Ensuring b > a
-                                 for b in b_vals] for a in a_vals])
+        # Likelihood as a function of 'a' for a fixed 'b'
+        fixed_b = np.max(samples) + 0.5  # Fixing 'b' to a reasonable value
+        likelihood_a = [np.sum(stats.uniform.logpdf(samples, loc=a, scale=fixed_b - a)) if fixed_b > a else -np.inf
+                        for a in a_vals]
 
-        # Plot the likelihood as a contour plot
-        fig, ax = plt.subplots(figsize=(8, 6))
-        c = ax.contourf(a_vals, b_vals, likelihoods.T, levels=50, cmap="viridis")
-        fig.colorbar(c)
-        ax.set_title('Log-Likelihood Contour (Uniform Distribution)')
-        ax.set_xlabel('a')
-        ax.set_ylabel('b')
+        # Likelihood as a function of 'b' for a fixed 'a'
+        fixed_a = np.min(samples) - 0.5  # Fixing 'a' to a reasonable value
+        likelihood_b = [np.sum(stats.uniform.logpdf(samples, loc=fixed_a, scale=b - fixed_a)) if b > fixed_a else -np.inf
+                        for b in b_vals]
+
+        # Create a grid for the likelihood plots
+        fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+
+        # Plot likelihood for 'a'
+        axs[0].plot(a_vals, likelihood_a)
+        axs[0].set_title('Log-Likelihood as a function of a')
+        axs[0].set_xlabel('a')
+        axs[0].set_ylabel('Log-Likelihood')
+
+        # Plot likelihood for 'b'
+        axs[1].plot(b_vals, likelihood_b)
+        axs[1].set_title('Log-Likelihood as a function of b')
+        axs[1].set_xlabel('b')
+        axs[1].set_ylabel('Log-Likelihood')
 
         st.pyplot(fig)
 
@@ -124,7 +137,7 @@ def plot_likelihood(samples, distribution):
         likelihood_lambda = [np.sum(stats.expon.logpdf(samples, scale=1/lambda_val)) for lambda_val in lambda_vals]
 
         # Plot the likelihood for λ
-        fig, ax = plt.subplots(figsize=(8, 6))
+        fig, ax = plt.subplots(figsize=(8, 4))
         ax.plot(lambda_vals, likelihood_lambda)
         ax.set_title('Log-Likelihood as a function of λ')
         ax.set_xlabel('λ')
@@ -132,19 +145,21 @@ def plot_likelihood(samples, distribution):
 
         st.pyplot(fig)
 
+# Chi-Square and KS Test for Goodness of Fit
 def perform_goodness_of_fit(samples, distribution, params):
-    """Perform Chi-Square and KS tests."""
-    st.subheader("Goodness of Fit Tests")
-
-    # Chi-Square Test
     try:
         if distribution == 'Normal':
             # Create the observed frequency from samples
             observed_freq, bins = np.histogram(samples, bins='auto')
             # Calculate midpoints of bins
             bin_midpoints = (bins[:-1] + bins[1:]) / 2
+
+            # Check that params contains both mean (mu) and std (sigma)
+            if len(params) != 2:
+                raise ValueError("For the Normal distribution, 'params' should be a tuple (mu, sigma).")
+
             # Generate expected frequencies based on normal distribution and scale them
-            expected_freq = stats.norm.pdf(bin_midpoints, *params) * len(samples) * np.diff(bins)
+            expected_freq = stats.norm.pdf(bin_midpoints, loc=params[0], scale=params[1]) * len(samples) * np.diff(bins)
 
             # Ensure that observed and expected frequencies have the same total sum
             if not np.isclose(observed_freq.sum(), expected_freq.sum(), rtol=1e-8):
@@ -156,16 +171,25 @@ def perform_goodness_of_fit(samples, distribution, params):
 
         # KS Test
         if distribution == 'Normal':
+            if len(params) != 2:
+                raise ValueError("For the Normal distribution, 'params' should be a tuple (mu, sigma).")
             ks_stat, p_val_ks = stats.kstest(samples, 'norm', args=params)
+
         elif distribution == 'Exponential':
+            if len(params) != 1:
+                raise ValueError("For the Exponential distribution, 'params' should be a single value (rate).")
             ks_stat, p_val_ks = stats.kstest(samples, 'expon', args=(0, 1 / params[0]))
+
         elif distribution == 'Uniform':
+            if len(params) != 2:
+                raise ValueError("For the Uniform distribution, 'params' should be a tuple (a, b).")
             ks_stat, p_val_ks = stats.kstest(samples, 'uniform', args=params)
 
         st.write(f"KS Test: statistic={ks_stat}, p-value={p_val_ks}")
 
     except ValueError as e:
         st.error(f"Error during goodness of fit tests: {e}")
+
 
 def show():
     set_rtl()
