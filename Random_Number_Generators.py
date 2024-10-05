@@ -5,24 +5,31 @@ import seaborn as sns
 from utils import set_ltr_sliders, set_rtl
 
 def mid_square_method(seed, n):
-    """Generate random numbers using Mid-Square method."""
+    """Generate random numbers using the Mid-Square method, with improved handling."""
     results = []
     for i in range(n):
-        z_squared = str(seed ** 2).zfill(8)  # Square and pad to ensure 8 digits
-        next_seed = int(z_squared[2:6])  # Take the middle 4 digits
-        u = next_seed / 10000  # Generate U_i
-        results.append((seed, u))
-        seed = next_seed
-    return results
+        # Square the seed and ensure it's zero-padded to at least 8 digits
+        z_squared = str(seed ** 2).zfill(8)
+        
+        # If seed becomes zero (all numbers zero out), break early
+        if seed == 0:
+            break
 
-def lcg_method(a, c, m, seed, n):
-    """Generate random numbers using Linear Congruential Generator."""
-    results = []
-    for i in range(n):
-        next_seed = (a * seed + c) % m
-        u = next_seed / m  # Generate U_i
+        # Take the middle 4 digits (for a 4-digit system)
+        mid = len(z_squared) // 2
+        next_seed = int(z_squared[mid-2:mid+2])
+
+        # If we end up in a repetitive zero sequence, stop early
+        if next_seed == 0:
+            break
+
+        # Generate U_i (the uniform number in [0, 1])
+        u = next_seed / 10000.0
         results.append((seed, u))
+
+        # Update the seed for the next iteration
         seed = next_seed
+
     return results
 
 def plot_histogram_of_samples(ui_values, method_name):
@@ -55,7 +62,10 @@ def show_random_generator():
 
         # Extract U_i values for the histogram
         ui_values = [ui for _, ui in mid_square_results]
-        plot_histogram_of_samples(ui_values, "Mid-Square Method")
+        if ui_values:
+            plot_histogram_of_samples(ui_values, "Mid-Square Method")
+        else:
+            st.write("Insufficient valid numbers generated due to repetitive zeros.")
 
     # Linear Congruential Generator (LCG)
     st.subheader("Linear Congruential Generator (LCG)")
