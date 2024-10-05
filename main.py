@@ -22,6 +22,7 @@ from food_truck import show_food_truck
 from logger import EventLogger
 from sampling_methods import show_sampling_methods
 from  goodness_of_fit import show as show_googness
+from Random_Number_Generators import show_random_generator
 
 
 def main():
@@ -98,6 +99,7 @@ def main():
         "סימולציית מוקד שירות": show_call_center,
         "סימולציית משאית מזון": show_food_truck,
         "שיטות דגימה": show_sampling_methods,
+        "מחולל מספרים אקראיים": show_random_generator
     }
 
     # Add buttons for each page in the sidebar
