@@ -32,12 +32,23 @@ def mid_square_method(seed, n):
 
     return results
 
+def lcg_method(a, c, m, seed, n):
+    """Generate random numbers using Linear Congruential Generator."""
+    results = []
+    for i in range(n):
+        next_seed = (a * seed + c) % m
+        u = next_seed / m  # Generate U_i
+        results.append((seed, u))
+        seed = next_seed
+    return results
+
+
 def plot_histogram_of_samples(ui_values, method_name):
     """Plot histogram of generated random numbers (U_i values)."""
     fig, ax = plt.subplots(figsize=(8, 6))
 
     # Plot histogram of all U_i values
-    sns.histplot(ui_values, bins=20, kde=True, ax=ax, color='orange')
+    sns.histplot(ui_values, bins=30, kde=True, ax=ax, color='orange')
     ax.set_title(f"{method_name}: Histogram of All Generated U_i")
     ax.set_xlabel('U_i')
     ax.set_ylabel('Frequency')
@@ -52,7 +63,7 @@ def show_random_generator():
     # Mid-Square Method
     st.subheader("Mid-Square Method")
     seed_ms = st.slider("Enter a 4-digit seed for Mid-Square Method:", min_value=1000, max_value=9999, value=1234)
-    n_ms = st.slider("How many numbers to generate?", min_value=100, max_value=10000, value=1000)
+    n_ms = st.slider("How many numbers to generate?", min_value=100, max_value=100000, value=10000)
 
     if st.button("Generate Mid-Square Numbers"):
         mid_square_results = mid_square_method(seed_ms, n_ms)
@@ -69,11 +80,11 @@ def show_random_generator():
 
     # Linear Congruential Generator (LCG)
     st.subheader("Linear Congruential Generator (LCG)")
+    n_lcg = st.slider("How many numbers to generate (LCG)?", min_value=100, max_value=1000000, value=10000)
     a = st.slider("Enter multiplier (a):", min_value=1, value=5)
     c = st.slider("Enter increment (c):", min_value=0, value=3)
     m = st.slider("Enter modulus (m):", min_value=2, value=16)
     seed_lcg = st.slider("Enter the seed (Z0):", min_value=0, value=7)
-    n_lcg = st.slider("How many numbers to generate (LCG)?", min_value=1, max_value=100, value=10)
 
     if st.button("Generate LCG Numbers"):
         lcg_results = lcg_method(a, c, m, seed_lcg, n_lcg)
