@@ -48,7 +48,7 @@ def plot_histogram_of_samples(ui_values, method_name):
     fig, ax = plt.subplots(figsize=(8, 6))
 
     # Plot histogram of all U_i values
-    sns.histplot(ui_values, bins=30, kde=True, ax=ax, color='orange')
+    sns.histplot(ui_values, bins=20, kde=True, ax=ax, color='orange')
     ax.set_title(f"{method_name}: Histogram of All Generated U_i")
     ax.set_xlabel('U_i')
     ax.set_ylabel('Frequency')
