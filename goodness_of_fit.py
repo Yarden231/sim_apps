@@ -195,10 +195,10 @@ def show():
     set_rtl()
     set_ltr_sliders()  # Ensure sliders are LTR
     """Display the distribution fitting and goodness-of-fit testing page."""
-    st.title("Distribution Fitting and Goodness-of-Fit Tests")
+    st.title("התאמת התפלגות למודל")
 
     # Add functionality to change sample size
-    sample_size = st.slider("Choose Sample Size", min_value=100, max_value=5000, value=1000)
+    sample_size = st.slider("בחר גודל מדגם", min_value=100, max_value=5000, value=1000)
 
     if st.button("Generate Random Samples"):
         samples, true_distribution, true_params = generate_random_samples(sample_size)
@@ -212,7 +212,7 @@ def show():
         visualize_samples_and_qqplots(st.session_state.samples)
 
         # Step 2: User selects the distribution they believe the samples come from
-        st.subheader("Select the Distribution You Believe the Samples Come From")
+        st.subheader("בחר את ההתפלגות שלדעתך הדגימות")
 
         # Three buttons for user to select the distribution
         if st.button("Normal Distribution"):
