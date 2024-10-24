@@ -24,14 +24,45 @@ def generate_random_samples(sample_size):
         samples = np.random.exponential(scale=1/lam, size=sample_size)
         return samples, 'Exponential', (lam,)
     
-def visualize_samples(samples):
-    """Display histograms and QQ plots of the given samples for three distributions in a grid."""
-    st.subheader("Histogram and QQ-Plots for Three Distributions")
+# Add this function at the beginning of your file, before the visualize_samples_and_qqplots function
+def display_samples(samples):
+    """Display the first few samples and a simple plot of all samples."""
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">הצגת המדגם</h3>
+            <p>להלן מדגם מייצג של זמני ההכנה שנמדדו:</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-    # Histogram
-    fig=sns.histplot(samples, kde=False)
-    fig.set_title('Histogram of Samples')
-    fig.show()
+    # Create two columns
+    col1, col2 = st.columns([1, 2])
+
+    with col1:
+        # Display first few samples in a table
+        st.markdown("""
+            <div class="info-box rtl-content">
+                <h4>דוגמאות לזמני הכנה (בדקות):</h4>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        # Create a DataFrame with the first 10 samples
+        sample_df = pd.DataFrame({
+            'מספר מדידה': range(1, 11),
+            'זמן (דקות)': samples[:10].round(2)
+        }).set_index('מספר מדידה')
+        
+        st.dataframe(sample_df, height=300)
+
+    with col2:
+        # Create a simple line plot of all samples
+        fig, ax = plt.subplots(figsize=(10, 6))
+        plt.plot(samples, marker='o', linestyle='None', alpha=0.5, markersize=3)
+        plt.title('זמני הכנה שנמדדו')
+        plt.xlabel('מספר מדידה')
+        plt.ylabel('זמן (דקות)')
+        plt.grid(True, alpha=0.3)
+        st.pyplot(fig)
+
 
 def visualize_samples_and_qqplots(samples):
     """Display histograms and QQ plots of the given samples for three distributions in a grid."""
@@ -241,36 +272,51 @@ def show():
         </div>
     """, unsafe_allow_html=True)
 
-    # Generate sample data
+
+    # After generating samples but before the QQ plots, add:
     if 'samples' not in st.session_state:
         # Generating realistic cooking time data (between 2 to 15 minutes)
         samples = np.random.lognormal(mean=2, sigma=0.4, size=1000)
         samples = (samples - min(samples)) * (13) / (max(samples) - min(samples)) + 2
         st.session_state.samples = samples
 
-    # Display summary statistics
     samples = st.session_state.samples
-    visualize_samples(samples)
+
+    # Display summary statistics
     st.markdown("""
         <div class="info-box rtl-content">
             <h4>סטטיסטיקה תיאורית:</h4>
             <ul class="custom-list">
+                <li>מספר מדידות: {:d}</li>
                 <li>זמן הכנה ממוצע: {:.2f} דקות</li>
                 <li>זמן הכנה מינימלי: {:.2f} דקות</li>
                 <li>זמן הכנה מקסימלי: {:.2f} דקות</li>
                 <li>סטיית תקן: {:.2f} דקות</li>
+                <li>חציון: {:.2f} דקות</li>
             </ul>
         </div>
     """.format(
+        len(samples),
         np.mean(samples),
         np.min(samples),
         np.max(samples),
-        np.std(samples)
+        np.std(samples),
+        np.median(samples)
     ), unsafe_allow_html=True)
 
-    # Visualization of the data
-    visualize_samples_and_qqplots(samples)
+    # Display the raw samples
+    display_samples(samples)
 
+    # Add a separator before the QQ plots
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">ניתוח התפלגות הנתונים</h3>
+            <p>כעת נבחן את התפלגות הנתונים באמצעות כלים סטטיסטיים:</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # Continue with existing code for QQ plots and rest of the analysis...
+    visualize_samples_and_qqplots(samples)
     # Distribution selection
     st.markdown("""
         <div class="custom-card rtl-content">
