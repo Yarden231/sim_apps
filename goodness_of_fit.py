@@ -190,24 +190,101 @@ import scipy.stats as stats
 from utils import set_rtl, set_ltr_sliders
 from styles import get_custom_css
 
-def generate_realistic_service_times(size=1000):
+def generate_service_times(size=1000, distribution_type=None):
     """
-    Generate realistic service times using a mixture of distributions
-    to better simulate real-world food preparation times.
+    Generate service times from various distributions.
+    If distribution_type is None, randomly select one.
     """
-    # Use numpy random seed based on current timestamp to ensure different samples each time
+    # Use numpy random seed based on current timestamp
     np.random.seed(int(pd.Timestamp.now().timestamp()))
     
-    # Generate base times from a mixture of distributions
-    base_times = np.concatenate([
-        np.random.lognormal(mean=2.0, sigma=0.3, size=int(size * 0.7)),  # Regular orders
-        np.random.lognormal(mean=2.4, sigma=0.4, size=int(size * 0.3))   # Complex orders
-    ])
+    if distribution_type is None:
+        distribution_type = np.random.choice([
+            'normal', 'uniform', 'exponential', 'mixture', 'lognormal'
+        ])
     
-    # Scale times to realistic food preparation minutes (between 2 and 15 minutes)
-    scaled_times = (base_times - min(base_times)) * (13) / (max(base_times) - min(base_times)) + 2
+    def scale_times(times, min_time=2, max_time=15):
+        """Scale times to be between min_time and max_time minutes"""
+        return (times - np.min(times)) * (max_time - min_time) / (np.max(times) - np.min(times)) + min_time
     
-    return scaled_times
+    if distribution_type == 'normal':
+        # Normal distribution with realistic parameters
+        mu = np.random.uniform(7, 9)  # mean service time
+        sigma = np.random.uniform(1, 2)  # standard deviation
+        samples = np.random.normal(mu, sigma, size)
+        samples = scale_times(samples)
+        true_params = ('Normal', (mu, sigma))
+        
+    elif distribution_type == 'uniform':
+        # Uniform distribution between min and max times
+        a = np.random.uniform(2, 5)  # minimum time
+        b = np.random.uniform(10, 15)  # maximum time
+        samples = np.random.uniform(a, b, size)
+        true_params = ('Uniform', (a, b))
+        
+    elif distribution_type == 'exponential':
+        # Exponential distribution scaled to realistic times
+        lambda_param = np.random.uniform(0.15, 0.25)  # rate parameter
+        samples = np.random.exponential(1/lambda_param, size)
+        samples = scale_times(samples)
+        true_params = ('Exponential', (lambda_param,))
+        
+    elif distribution_type == 'lognormal':
+        # Lognormal distribution for right-skewed times
+        mu = np.random.uniform(1.8, 2.2)
+        sigma = np.random.uniform(0.2, 0.4)
+        samples = np.random.lognormal(mu, sigma, size)
+        samples = scale_times(samples)
+        true_params = ('Lognormal', (mu, sigma))
+        
+    elif distribution_type == 'mixture':
+        # Mixture of distributions
+        mixture_type = np.random.choice([
+            'normal_exponential',
+            'normal_uniform',
+            'bimodal_normal'
+        ])
+        
+        if mixture_type == 'normal_exponential':
+            # Mix of normal (regular orders) and exponential (rush orders)
+            prop_normal = np.random.uniform(0.6, 0.8)
+            n_normal = int(size * prop_normal)
+            n_exp = size - n_normal
+            
+            normal_samples = np.random.normal(8, 1.5, n_normal)
+            exp_samples = np.random.exponential(2, n_exp) + 5
+            samples = np.concatenate([normal_samples, exp_samples])
+            true_params = ('Mixture', ('Normal-Exponential', prop_normal))
+            
+        elif mixture_type == 'normal_uniform':
+            # Mix of normal (regular orders) and uniform (special orders)
+            prop_normal = np.random.uniform(0.7, 0.9)
+            n_normal = int(size * prop_normal)
+            n_uniform = size - n_normal
+            
+            normal_samples = np.random.normal(8, 1.5, n_normal)
+            uniform_samples = np.random.uniform(4, 12, n_uniform)
+            samples = np.concatenate([normal_samples, uniform_samples])
+            true_params = ('Mixture', ('Normal-Uniform', prop_normal))
+            
+        else:  # bimodal_normal
+            # Bimodal normal for different types of orders
+            prop_fast = np.random.uniform(0.5, 0.7)
+            n_fast = int(size * prop_fast)
+            n_slow = size - n_fast
+            
+            fast_samples = np.random.normal(6, 1, n_fast)
+            slow_samples = np.random.normal(11, 1.5, n_slow)
+            samples = np.concatenate([fast_samples, slow_samples])
+            true_params = ('Mixture', ('Bimodal-Normal', prop_fast))
+        
+        samples = scale_times(samples)
+    
+    # Ensure all times are positive and within realistic bounds
+    samples = np.clip(samples, 2, 15)
+    
+    return samples, true_params
+
 
 def perform_goodness_of_fit(samples, distribution, params):
     """
