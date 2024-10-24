@@ -1,4 +1,5 @@
 import streamlit as st
+import matplotlib.pyplot as plt
 
 def show():
     # Custom CSS to set text color to black for all elements
@@ -36,6 +37,8 @@ def show():
 
     # Example course simulation section
     st.subheader("דוגמת הקורס: The Busy Food Truck")
+    image= plt.imread("food_track_image.jpg")
+    st.image(image, caption=None, width=None, use_column_width=None, clamp=False, channels="RGB", output_format="auto")
     st.write("""
     ###### האפליקציה תאפשר לכם לחקור את כל שלבי הסימולציה דרך דוגמה של מערכת שירות תוססת. תגלו כיצד זרימת לקוחות, ניהול הזמנות, הכנת ארוחות ואיסוף משפיעים על ביצועי המערכת.         
     #### מטרות הסימולציה:
