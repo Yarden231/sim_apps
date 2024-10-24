@@ -264,6 +264,7 @@ def show_sampling_methods():
     if st.session_state.selected_sampling:
         show_implementation()
 
+
 def show_implementation():
     """Display code implementations with LTR formatting"""
     st.markdown("""
@@ -273,10 +274,7 @@ def show_implementation():
         </div>
     """, unsafe_allow_html=True)
     
-    st.markdown('<div dir="ltr">', unsafe_allow_html=True)  # Set LTR direction
-    with st.expander("Show Implementation Code"):
-        if st.session_state.selected_sampling == 'normal':
-            st.code("""
+    code_normal = """
 # Sampling from normal distribution
 def sample_normal(mu, sigma, size):
     # Generate samples with specified mean and standard deviation
@@ -287,10 +285,9 @@ def sample_normal(mu, sigma, size):
 # Usage example:
 # Sampling preparation times with mean=8 minutes and std=1 minute
 samples = sample_normal(mu=8, sigma=1, size=1000)
-""", language='python')
-            
-        elif st.session_state.selected_sampling == 'exponential':
-            st.code("""
+"""
+
+    code_exponential = """
 # Sampling from exponential distribution
 def sample_exponential(lambda_param, size):
     # Generate samples with specified rate parameter
@@ -302,10 +299,9 @@ def sample_exponential(lambda_param, size):
 # Usage example:
 # Sampling preparation times with mean=5 minutes (lambda=0.2)
 samples = sample_exponential(lambda_param=0.2, size=1000)
-""", language='python')
-            
-        elif st.session_state.selected_sampling == 'composite':
-            st.code("""
+"""
+
+    code_composite = """
 # Sampling from mixture distribution
 def sample_composite(size):
     # Split between simple orders (20%) and complex orders (80%)
@@ -326,24 +322,17 @@ def sample_composite(size):
 # Usage example:
 # Sampling 1000 preparation times from mixture distribution
 samples = sample_composite(size=1000)
-""", language='python')
+"""
 
-        # Add helper functions code
-        st.markdown("""
-            <div class="custom-card" style="margin-top: 20px;">
-                <h4>Helper Functions</h4>
-            </div>
-        """, unsafe_allow_html=True)
-        
-        st.code("""
+    code_helpers = """
 # Utility functions for handling service times
 
 def clip_and_validate_times(samples, min_time=2, max_time=15):
-    """Ensure service times are within realistic bounds"""
+    \"\"\"Ensure service times are within realistic bounds\"\"\"
     return np.clip(samples, min_time, max_time)
 
 def add_random_variation(samples, variation_percent=10):
-    """Add controlled random variation to service times
+    \"\"\"Add controlled random variation to service times
     
     Args:
         samples: Array of service times
@@ -351,12 +340,12 @@ def add_random_variation(samples, variation_percent=10):
     
     Returns:
         Array of service times with added random variation
-    """
+    \"\"\"
     variation = samples * (variation_percent/100) * np.random.uniform(-1, 1, len(samples))
     return samples + variation
 
 def generate_service_times(distribution_type, size, **params):
-    """Main function for generating service times
+    \"\"\"Main function for generating service times
     
     Args:
         distribution_type: 'normal', 'exponential', or 'composite'
@@ -365,7 +354,7 @@ def generate_service_times(distribution_type, size, **params):
     
     Returns:
         Array of generated service times
-    """
+    \"\"\"
     if distribution_type == 'normal':
         samples = np.random.normal(params['mu'], params['sigma'], size)
     elif distribution_type == 'exponential':
@@ -386,7 +375,30 @@ service_times = generate_service_times(
     mu=8,    # mean service time
     sigma=1  # standard deviation
 )
-""", language='python')
+"""
+
+    st.markdown('<div dir="ltr">', unsafe_allow_html=True)  # Set LTR direction
+    
+    with st.expander("Show Implementation Code"):
+        if st.session_state.selected_sampling == 'normal':
+            st.code(code_normal, language='python')
+        elif st.session_state.selected_sampling == 'exponential':
+            st.code(code_exponential, language='python')
+        elif st.session_state.selected_sampling == 'composite':
+            st.code(code_composite, language='python')
+
+        # Add helper functions code
+        st.markdown("""
+            <div class="custom-card" style="margin-top: 20px;">
+                <h4>Helper Functions</h4>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        st.code(code_helpers, language='python')
+
     st.markdown('</div>', unsafe_allow_html=True)  # Close LTR div
+
+
+
 if __name__ == "__main__":
     show_sampling_methods()
