@@ -182,62 +182,101 @@ def plot_likelihood(samples, distribution):
         ax.set_ylabel('Log-Likelihood')
 
         st.pyplot(fig)
+import streamlit as st
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import scipy.stats as stats
+from utils import set_rtl, set_ltr_sliders
+from styles import get_custom_css
 
-# Chi-Square and KS Test for Goodness of Fit
+def generate_realistic_service_times(size=1000):
+    """
+    Generate realistic service times using a mixture of distributions
+    to better simulate real-world food preparation times.
+    """
+    # Use numpy random seed based on current timestamp to ensure different samples each time
+    np.random.seed(int(pd.Timestamp.now().timestamp()))
+    
+    # Generate base times from a mixture of distributions
+    base_times = np.concatenate([
+        np.random.lognormal(mean=2.0, sigma=0.3, size=int(size * 0.7)),  # Regular orders
+        np.random.lognormal(mean=2.4, sigma=0.4, size=int(size * 0.3))   # Complex orders
+    ])
+    
+    # Scale times to realistic food preparation minutes (between 2 and 15 minutes)
+    scaled_times = (base_times - min(base_times)) * (13) / (max(base_times) - min(base_times)) + 2
+    
+    return scaled_times
+
 def perform_goodness_of_fit(samples, distribution, params):
-    try:
-        # Initialize the result to display after both tests
-        test_results = ""
+    """
+    Improved goodness of fit testing with proper handling of different distributions
+    and degrees of freedom.
+    """
+    test_results = []
+    
+    # Calculate number of bins using Sturges' rule
+    n_bins = int(np.ceil(np.log2(len(samples)) + 1))
+    
+    # Perform Chi-Square Test
+    observed_freq, bins = np.histogram(samples, bins=n_bins)
+    bin_midpoints = (bins[:-1] + bins[1:]) / 2
+    
+    # Calculate expected frequencies based on the distribution
+    if distribution == 'Normal':
+        mu, sigma = params
+        expected_probs = stats.norm.cdf(bins[1:], mu, sigma) - stats.norm.cdf(bins[:-1], mu, sigma)
+        dof = len(observed_freq) - 3  # Subtract 3 for normal (2 parameters + 1)
         
-        if distribution == 'Normal':
-            # Chi-Square Test for Normal Distribution
-            observed_freq, bins = np.histogram(samples, bins='auto')
-            bin_midpoints = (bins[:-1] + bins[1:]) / 2
-            
-            if len(params) != 2:
-                raise ValueError("For the Normal distribution, 'params' should be a tuple (mu, sigma).")
-            
-            expected_freq = stats.norm.pdf(bin_midpoints, loc=params[0], scale=params[1]) * len(samples) * np.diff(bins)
-            expected_freq *= observed_freq.sum() / expected_freq.sum()  # Adjust expected frequencies
-            
-            chi_square, p_val_chi = stats.chisquare(observed_freq, expected_freq)
-            st.write(f"Chi-Square Test: statistic={chi_square}, p-value={p_val_chi}")
-            
-            # Add conclusion for Chi-Square test
-            if p_val_chi < 0.05:
-                test_results += "Based on the Chi-Square test, we reject the null hypothesis (H0). The data does not follow a normal distribution.\n"
-            else:
-                test_results += "Based on the Chi-Square test, we fail to reject the null hypothesis (H0). The data may follow a normal distribution.\n"
-
-        # KS Test
-        if distribution == 'Normal':
-            ks_stat, p_val_ks = stats.kstest(samples, 'norm', args=params)
-        elif distribution == 'Exponential':
-            ks_stat, p_val_ks = stats.kstest(samples, 'expon', args=(0, 1 / params[0]))
-        elif distribution == 'Uniform':
-            ks_stat, p_val_ks = stats.kstest(samples, 'uniform', args=params)
-
-        st.write(f"KS Test: statistic={ks_stat}, p-value={p_val_ks}")
-
-        # Add conclusion for KS test
-        if p_val_ks < 0.05:
-            test_results += "Based on the KS test, we reject the null hypothesis (H0). The data does not follow the chosen distribution.\n"
+    elif distribution == 'Exponential':
+        lambda_param = params[0]
+        expected_probs = stats.expon.cdf(bins[1:], scale=1/lambda_param) - stats.expon.cdf(bins[:-1], scale=1/lambda_param)
+        dof = len(observed_freq) - 2  # Subtract 2 for exponential (1 parameter + 1)
+        
+    elif distribution == 'Uniform':
+        a, b = params
+        expected_probs = stats.uniform.cdf(bins[1:], a, b-a) - stats.uniform.cdf(bins[:-1], a, b-a)
+        dof = len(observed_freq) - 3  # Subtract 3 for uniform (2 parameters + 1)
+    
+    expected_freq = expected_probs * len(samples)
+    
+    # Remove bins with expected frequency < 5 (combining them)
+    mask = expected_freq >= 5
+    if not all(mask):
+        observed_freq = np.array([sum(observed_freq[~mask])] + list(observed_freq[mask]))
+        expected_freq = np.array([sum(expected_freq[~mask])] + list(expected_freq[mask]))
+        dof -= len(mask) - sum(mask) - 1
+    
+    # Perform Chi-Square test with correct degrees of freedom
+    chi_square_stat = np.sum((observed_freq - expected_freq) ** 2 / expected_freq)
+    p_value_chi = 1 - stats.chi2.cdf(chi_square_stat, dof)
+    
+    test_results.append(f"Chi-Square Test: statistic={chi_square_stat:.4f}, p-value={p_value_chi:.4f}")
+    
+    # Perform Kolmogorov-Smirnov test
+    if distribution == 'Normal':
+        ks_stat, p_value_ks = stats.kstest(samples, 'norm', args=params)
+    elif distribution == 'Exponential':
+        ks_stat, p_value_ks = stats.kstest(samples, 'expon', args=(0, 1/params[0]))
+    elif distribution == 'Uniform':
+        ks_stat, p_value_ks = stats.kstest(samples, 'uniform', args=params)
+    
+    test_results.append(f"KS Test: statistic={ks_stat:.4f}, p-value={p_value_ks:.4f}")
+    
+    # Format results for display
+    conclusion = "מסקנות המבחנים הסטטיסטיים:\n\n"
+    
+    for result in test_results:
+        test_name = result.split(':')[0]
+        p_value = float(result.split('p-value=')[1])
+        
+        if p_value < 0.05:
+            conclusion += f"• {test_name}: דוחים את השערת האפס (H0). הנתונים כנראה אינם מתפלגים לפי ההתפלגות הנבחרת.\n"
         else:
-            test_results += "Based on the KS test, we fail to reject the null hypothesis (H0). The data may follow the chosen distribution.\n"
-        
-        # Display overall conclusion
-        st.markdown(f"""
-            <div class="info-box rtl-content">
-                <h4>מסקנה:</h4>
-                <p>{test_results}</p>
-                <p>המשמעות היא שאם דחינו את H0, סביר להניח שהנתונים אינם מתאימים להתפלגות שבחרנו.
-                אם לא דחינו את H0, ייתכן שההתפלגות שבחרנו מתארת את הנתונים בצורה טובה.</p>
-            </div>
-        """, unsafe_allow_html=True)
-
-    except ValueError as e:
-        st.error(f"Error during goodness of fit tests: {e}")
-
+            conclusion += f"• {test_name}: אין מספיק עדות לדחות את השערת האפס (H0). ייתכן שההתפלגות מתאימה לנתונים.\n"
+    
+    return test_results, conclusion
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
@@ -281,9 +320,8 @@ def show():
     """, unsafe_allow_html=True)
 
     # Generate fresh samples every time the page is loaded
-    samples = np.random.lognormal(mean=2, sigma=0.4, size=1000)
-    samples = (samples - min(samples)) * (13) / (max(samples) - min(samples)) + 2
-
+    # Generate new samples each time using the current timestamp
+    samples = generate_realistic_service_times()
     # Display summary statistics
     st.markdown("""
         <div class="info-box rtl-content">
