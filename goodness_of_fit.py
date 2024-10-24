@@ -28,11 +28,8 @@ def visualize_samples(samples):
     """Display histograms and QQ plots of the given samples for three distributions in a grid."""
     st.subheader("Histogram and QQ-Plots for Three Distributions")
 
-    # Create a grid of 2x2 (for histogram and QQ-plots)
-    fig= plt.plot()  # Adjust the size to fit the page width
-
     # Histogram
-    sns.histplot(samples, kde=False)
+    fig=sns.histplot(samples, kde=False)
     fig.set_title('Histogram of Samples')
     fig.show()
 
