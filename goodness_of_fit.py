@@ -186,47 +186,58 @@ def plot_likelihood(samples, distribution):
 # Chi-Square and KS Test for Goodness of Fit
 def perform_goodness_of_fit(samples, distribution, params):
     try:
+        # Initialize the result to display after both tests
+        test_results = ""
+        
         if distribution == 'Normal':
-            # Create the observed frequency from samples
+            # Chi-Square Test for Normal Distribution
             observed_freq, bins = np.histogram(samples, bins='auto')
-            # Calculate midpoints of bins
             bin_midpoints = (bins[:-1] + bins[1:]) / 2
-
-            # Check that params contains both mean (mu) and std (sigma)
+            
             if len(params) != 2:
                 raise ValueError("For the Normal distribution, 'params' should be a tuple (mu, sigma).")
-
-            # Generate expected frequencies based on normal distribution and scale them
+            
             expected_freq = stats.norm.pdf(bin_midpoints, loc=params[0], scale=params[1]) * len(samples) * np.diff(bins)
-
-            # Ensure that observed and expected frequencies have the same total sum
-            if not np.isclose(observed_freq.sum(), expected_freq.sum(), rtol=1e-8):
-                expected_freq *= observed_freq.sum() / expected_freq.sum()
-
-            # Perform the Chi-Square test
+            expected_freq *= observed_freq.sum() / expected_freq.sum()  # Adjust expected frequencies
+            
             chi_square, p_val_chi = stats.chisquare(observed_freq, expected_freq)
             st.write(f"Chi-Square Test: statistic={chi_square}, p-value={p_val_chi}")
+            
+            # Add conclusion for Chi-Square test
+            if p_val_chi < 0.05:
+                test_results += "Based on the Chi-Square test, we reject the null hypothesis (H0). The data does not follow a normal distribution.\n"
+            else:
+                test_results += "Based on the Chi-Square test, we fail to reject the null hypothesis (H0). The data may follow a normal distribution.\n"
 
         # KS Test
         if distribution == 'Normal':
-            if len(params) != 2:
-                raise ValueError("For the Normal distribution, 'params' should be a tuple (mu, sigma).")
             ks_stat, p_val_ks = stats.kstest(samples, 'norm', args=params)
-
         elif distribution == 'Exponential':
-            if len(params) != 1:
-                raise ValueError("For the Exponential distribution, 'params' should be a single value (rate).")
             ks_stat, p_val_ks = stats.kstest(samples, 'expon', args=(0, 1 / params[0]))
-
         elif distribution == 'Uniform':
-            if len(params) != 2:
-                raise ValueError("For the Uniform distribution, 'params' should be a tuple (a, b).")
             ks_stat, p_val_ks = stats.kstest(samples, 'uniform', args=params)
 
         st.write(f"KS Test: statistic={ks_stat}, p-value={p_val_ks}")
 
+        # Add conclusion for KS test
+        if p_val_ks < 0.05:
+            test_results += "Based on the KS test, we reject the null hypothesis (H0). The data does not follow the chosen distribution.\n"
+        else:
+            test_results += "Based on the KS test, we fail to reject the null hypothesis (H0). The data may follow the chosen distribution.\n"
+        
+        # Display overall conclusion
+        st.markdown(f"""
+            <div class="info-box rtl-content">
+                <h4>מסקנה:</h4>
+                <p>{test_results}</p>
+                <p>המשמעות היא שאם דחינו את H0, סביר להניח שהנתונים אינם מתאימים להתפלגות שבחרנו.
+                אם לא דחינו את H0, ייתכן שההתפלגות שבחרנו מתארת את הנתונים בצורה טובה.</p>
+            </div>
+        """, unsafe_allow_html=True)
+
     except ValueError as e:
         st.error(f"Error during goodness of fit tests: {e}")
+
 
 import streamlit as st
 import numpy as np
