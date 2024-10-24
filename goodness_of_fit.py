@@ -356,6 +356,75 @@ def generate_service_times(size=1000, distribution_type=None):
     
     return samples, dist_info
 
+def perform_goodness_of_fit(samples, distribution, params):
+    """
+    Improved goodness of fit testing with proper handling of different distributions
+    and degrees of freedom.
+    """
+    test_results = []
+    
+    # Calculate number of bins using Sturges' rule
+    n_bins = int(np.ceil(np.log2(len(samples)) + 1))
+    
+    # Perform Chi-Square Test
+    observed_freq, bins = np.histogram(samples, bins=n_bins)
+    bin_midpoints = (bins[:-1] + bins[1:]) / 2
+    
+    # Calculate expected frequencies based on the distribution
+    if distribution == 'Normal':
+        mu, sigma = params
+        expected_probs = stats.norm.cdf(bins[1:], mu, sigma) - stats.norm.cdf(bins[:-1], mu, sigma)
+        dof = len(observed_freq) - 3  # Subtract 3 for normal (2 parameters + 1)
+        
+    elif distribution == 'Exponential':
+        lambda_param = params[0]
+        expected_probs = stats.expon.cdf(bins[1:], scale=1/lambda_param) - stats.expon.cdf(bins[:-1], scale=1/lambda_param)
+        dof = len(observed_freq) - 2  # Subtract 2 for exponential (1 parameter + 1)
+        
+    elif distribution == 'Uniform':
+        a, b = params
+        expected_probs = stats.uniform.cdf(bins[1:], a, b-a) - stats.uniform.cdf(bins[:-1], a, b-a)
+        dof = len(observed_freq) - 3  # Subtract 3 for uniform (2 parameters + 1)
+    
+    expected_freq = expected_probs * len(samples)
+    
+    # Remove bins with expected frequency < 5 (combining them)
+    mask = expected_freq >= 5
+    if not all(mask):
+        observed_freq = np.array([sum(observed_freq[~mask])] + list(observed_freq[mask]))
+        expected_freq = np.array([sum(expected_freq[~mask])] + list(expected_freq[mask]))
+        dof -= len(mask) - sum(mask) - 1
+    
+    # Perform Chi-Square test with correct degrees of freedom
+    chi_square_stat = np.sum((observed_freq - expected_freq) ** 2 / expected_freq)
+    p_value_chi = 1 - stats.chi2.cdf(chi_square_stat, dof)
+    
+    test_results.append(f"Chi-Square Test: statistic={chi_square_stat:.4f}, p-value={p_value_chi:.4f}")
+    
+    # Perform Kolmogorov-Smirnov test
+    if distribution == 'Normal':
+        ks_stat, p_value_ks = stats.kstest(samples, 'norm', args=params)
+    elif distribution == 'Exponential':
+        ks_stat, p_value_ks = stats.kstest(samples, 'expon', args=(0, 1/params[0]))
+    elif distribution == 'Uniform':
+        ks_stat, p_value_ks = stats.kstest(samples, 'uniform', args=params)
+    
+    test_results.append(f"KS Test: statistic={ks_stat:.4f}, p-value={p_value_ks:.4f}")
+    
+    # Format results for display
+    conclusion = "מסקנות המבחנים הסטטיסטיים:\n\n"
+    
+    for result in test_results:
+        test_name = result.split(':')[0]
+        p_value = float(result.split('p-value=')[1])
+        
+        if p_value < 0.05:
+            conclusion += f"• {test_name}: דוחים את השערת האפס (H0). הנתונים כנראה אינם מתפלגים לפי ההתפלגות הנבחרת.\n"
+        else:
+            conclusion += f"• {test_name}: אין מספיק עדות לדחות את השערת האפס (H0). ייתכן שההתפלגות מתאימה לנתונים.\n"
+    
+    return test_results, conclusion
+
 def show():
     set_rtl()
     set_ltr_sliders()
