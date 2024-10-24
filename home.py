@@ -36,7 +36,7 @@ def show():
         """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown('<div class="img-container">', unsafe_allow_html=True)
+        st.markdown('<div class="img-container rtl-content">', unsafe_allow_html=True)
         try:
             image = plt.imread("food_track_image.jpg")
             st.image(image, use_column_width=True, caption="משאית המזון שלנו")
@@ -73,6 +73,6 @@ def show():
         
         <div class="info-box rtl-content">
             <p style="font-style: italic;">"הדרך הטובה ביותר לחזות את העתיד היא לסמלץ אותו."</p>
-            <p style="text-align: left; color: #666;">- לא ידוע</p>
+            <p style="text-align: right; color: #666;">- לא ידוע</p> <!-- Changed to right alignment -->
         </div>
     """, unsafe_allow_html=True)
