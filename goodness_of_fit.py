@@ -3,8 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as stats
-from utils import set_rtl, set_ltr_sliders
 import pandas as pd
+from utils import set_rtl, set_ltr_sliders
+from styles import get_custom_css
 
 def generate_random_samples(sample_size):
     """Generate samples from a random distribution with random parameters."""
@@ -182,109 +183,6 @@ def plot_likelihood(samples, distribution):
         ax.set_ylabel('Log-Likelihood')
 
         st.pyplot(fig)
-import streamlit as st
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import scipy.stats as stats
-from utils import set_rtl, set_ltr_sliders
-from styles import get_custom_css
-
-def generate_service_times(size=1000, distribution_type=None):
-    """
-    Generate service times from various distributions.
-    If distribution_type is None, randomly select one.
-    """
-    # Use numpy random seed based on current timestamp
-    np.random.seed(int(pd.Timestamp.now().timestamp()))
-    
-    if distribution_type is None:
-        distribution_type = np.random.choice([
-            'normal', 'uniform', 'exponential', 'mixture', 'lognormal'
-        ])
-    
-    def scale_times(times, min_time=2, max_time=15):
-        """Scale times to be between min_time and max_time minutes"""
-        return (times - np.min(times)) * (max_time - min_time) / (np.max(times) - np.min(times)) + min_time
-    
-    if distribution_type == 'normal':
-        # Normal distribution with realistic parameters
-        mu = np.random.uniform(7, 9)  # mean service time
-        sigma = np.random.uniform(1, 2)  # standard deviation
-        samples = np.random.normal(mu, sigma, size)
-        samples = scale_times(samples)
-        true_params = ('Normal', (mu, sigma))
-        
-    elif distribution_type == 'uniform':
-        # Uniform distribution between min and max times
-        a = np.random.uniform(2, 5)  # minimum time
-        b = np.random.uniform(10, 15)  # maximum time
-        samples = np.random.uniform(a, b, size)
-        true_params = ('Uniform', (a, b))
-        
-    elif distribution_type == 'exponential':
-        # Exponential distribution scaled to realistic times
-        lambda_param = np.random.uniform(0.15, 0.25)  # rate parameter
-        samples = np.random.exponential(1/lambda_param, size)
-        samples = scale_times(samples)
-        true_params = ('Exponential', (lambda_param,))
-        
-    elif distribution_type == 'lognormal':
-        # Lognormal distribution for right-skewed times
-        mu = np.random.uniform(1.8, 2.2)
-        sigma = np.random.uniform(0.2, 0.4)
-        samples = np.random.lognormal(mu, sigma, size)
-        samples = scale_times(samples)
-        true_params = ('Lognormal', (mu, sigma))
-        
-    elif distribution_type == 'mixture':
-        # Mixture of distributions
-        mixture_type = np.random.choice([
-            'normal_exponential',
-            'normal_uniform',
-            'bimodal_normal'
-        ])
-        
-        if mixture_type == 'normal_exponential':
-            # Mix of normal (regular orders) and exponential (rush orders)
-            prop_normal = np.random.uniform(0.6, 0.8)
-            n_normal = int(size * prop_normal)
-            n_exp = size - n_normal
-            
-            normal_samples = np.random.normal(8, 1.5, n_normal)
-            exp_samples = np.random.exponential(2, n_exp) + 5
-            samples = np.concatenate([normal_samples, exp_samples])
-            true_params = ('Mixture', ('Normal-Exponential', prop_normal))
-            
-        elif mixture_type == 'normal_uniform':
-            # Mix of normal (regular orders) and uniform (special orders)
-            prop_normal = np.random.uniform(0.7, 0.9)
-            n_normal = int(size * prop_normal)
-            n_uniform = size - n_normal
-            
-            normal_samples = np.random.normal(8, 1.5, n_normal)
-            uniform_samples = np.random.uniform(4, 12, n_uniform)
-            samples = np.concatenate([normal_samples, uniform_samples])
-            true_params = ('Mixture', ('Normal-Uniform', prop_normal))
-            
-        else:  # bimodal_normal
-            # Bimodal normal for different types of orders
-            prop_fast = np.random.uniform(0.5, 0.7)
-            n_fast = int(size * prop_fast)
-            n_slow = size - n_fast
-            
-            fast_samples = np.random.normal(6, 1, n_fast)
-            slow_samples = np.random.normal(11, 1.5, n_slow)
-            samples = np.concatenate([fast_samples, slow_samples])
-            true_params = ('Mixture', ('Bimodal-Normal', prop_fast))
-        
-        samples = scale_times(samples)
-    
-    # Ensure all times are positive and within realistic bounds
-    samples = np.clip(samples, 2, 15)
-    
-    return samples, true_params
-
 
 def perform_goodness_of_fit(samples, distribution, params):
     """
@@ -355,45 +253,143 @@ def perform_goodness_of_fit(samples, distribution, params):
     
     return test_results, conclusion
 
+def generate_service_times(size=1000, distribution_type=None):
+    """
+    Generate service times from various distributions.
+    If distribution_type is None, randomly select one.
+    """
+    # Use numpy random seed based on current timestamp
+    np.random.seed(int(pd.Timestamp.now().timestamp()))
+    
+    if distribution_type is None:
+        distribution_type = np.random.choice([
+            'normal', 'uniform', 'exponential', 'mixture', 'lognormal'
+        ])
+    
+    def scale_times(times, min_time=2, max_time=15):
+        """Scale times to be between min_time and max_time minutes"""
+        return (times - np.min(times)) * (max_time - min_time) / (np.max(times) - np.min(times)) + min_time
+    
+    if distribution_type == 'normal':
+        # Normal distribution with realistic parameters
+        mu = np.random.uniform(7, 9)  # mean service time
+        sigma = np.random.uniform(1, 2)  # standard deviation
+        samples = np.random.normal(mu, sigma, size)
+        samples = scale_times(samples)
+        dist_info = {'type': 'Normal', 'params': {'mu': mu, 'sigma': sigma}}
+        
+    elif distribution_type == 'uniform':
+        # Uniform distribution between min and max times
+        a = np.random.uniform(2, 5)  # minimum time
+        b = np.random.uniform(10, 15)  # maximum time
+        samples = np.random.uniform(a, b, size)
+        dist_info = {'type': 'Uniform', 'params': {'a': a, 'b': b}}
+        
+    elif distribution_type == 'exponential':
+        # Exponential distribution scaled to realistic times
+        lambda_param = np.random.uniform(0.15, 0.25)  # rate parameter
+        samples = np.random.exponential(1/lambda_param, size)
+        samples = scale_times(samples)
+        dist_info = {'type': 'Exponential', 'params': {'lambda': lambda_param}}
+        
+    elif distribution_type == 'lognormal':
+        # Lognormal distribution for right-skewed times
+        mu = np.random.uniform(1.8, 2.2)
+        sigma = np.random.uniform(0.2, 0.4)
+        samples = np.random.lognormal(mu, sigma, size)
+        samples = scale_times(samples)
+        dist_info = {'type': 'Lognormal', 'params': {'mu': mu, 'sigma': sigma}}
+        
+    elif distribution_type == 'mixture':
+        # Mixture of distributions
+        mixture_type = np.random.choice([
+            'normal_exponential',
+            'normal_uniform',
+            'bimodal_normal'
+        ])
+        
+        if mixture_type == 'normal_exponential':
+            # Mix of normal (regular orders) and exponential (rush orders)
+            prop_normal = np.random.uniform(0.6, 0.8)
+            n_normal = int(size * prop_normal)
+            n_exp = size - n_normal
+            
+            normal_samples = np.random.normal(8, 1.5, n_normal)
+            exp_samples = np.random.exponential(2, n_exp) + 5
+            samples = np.concatenate([normal_samples, exp_samples])
+            dist_info = {
+                'type': 'Mixture',
+                'subtype': 'Normal-Exponential',
+                'params': {'proportion_normal': prop_normal}
+            }
+            
+        elif mixture_type == 'normal_uniform':
+            # Mix of normal (regular orders) and uniform (special orders)
+            prop_normal = np.random.uniform(0.7, 0.9)
+            n_normal = int(size * prop_normal)
+            n_uniform = size - n_normal
+            
+            normal_samples = np.random.normal(8, 1.5, n_normal)
+            uniform_samples = np.random.uniform(4, 12, n_uniform)
+            samples = np.concatenate([normal_samples, uniform_samples])
+            dist_info = {
+                'type': 'Mixture',
+                'subtype': 'Normal-Uniform',
+                'params': {'proportion_normal': prop_normal}
+            }
+            
+        else:  # bimodal_normal
+            # Bimodal normal for different types of orders
+            prop_fast = np.random.uniform(0.5, 0.7)
+            n_fast = int(size * prop_fast)
+            n_slow = size - n_fast
+            
+            fast_samples = np.random.normal(6, 1, n_fast)
+            slow_samples = np.random.normal(11, 1.5, n_slow)
+            samples = np.concatenate([fast_samples, slow_samples])
+            dist_info = {
+                'type': 'Mixture',
+                'subtype': 'Bimodal-Normal',
+                'params': {'proportion_fast': prop_fast}
+            }
+        
+        samples = scale_times(samples)
+    
+    # Ensure all times are positive and within realistic bounds
+    samples = np.clip(samples, 2, 15)
+    
+    return samples, dist_info
 
 def show():
     set_rtl()
     set_ltr_sliders()
     st.markdown(get_custom_css(), unsafe_allow_html=True)
-
-    # Header section with story introduction
+    
+    # Header section
     st.markdown("""
         <div class="custom-header rtl-content">
             <h1>ניתוח זמני שירות - עמדת הכנת המנות 👨‍🍳</h1>
             <p>התאמת מודל סטטיסטי לזמני הכנת מנות במשאית</p>
         </div>
     """, unsafe_allow_html=True)
-
-    # Story introduction
-    st.markdown("""
-        <div class="custom-card rtl-content">
-            <h3 class="section-header">רקע</h3>
-            <p>
-                כדי לשפר את השירות במשאית המזון, ביצענו מדידה של זמני ההכנה בעמדת הבישול.
-                העובד בעמדה זו מכין את המנות לפי הזמנת הלקוחות.
-                אספנו נתונים של זמני הכנה במשך מספר ימי עבודה, וכעת אנחנו רוצים לנתח את הנתונים
-                ולמצוא את ההתפלגות הסטטיסטית שמתארת אותם בצורה הטובה ביותר.
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Data generation/loading section
-    st.markdown("""
-        <div class="custom-card rtl-content">
-            <h3 class="section-header">הנתונים שנאספו</h3>
-            <p>להלן מדגם של זמני הכנת המנות (בדקות) שנמדדו בעמדת הבישול:</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Generate fresh samples every time the page is loaded
-    # Generate new samples each time using the current timestamp
-    samples = generate_service_times()
+    
+    # Generate new samples
+    if 'samples' not in st.session_state or st.button('יצירת מדגם חדש'):
+        samples, dist_info = generate_service_times()
+        st.session_state.samples = samples
+        st.session_state.dist_info = dist_info
+        
+        # Add this for debugging/testing
+        st.markdown(f"""
+            <div class="info-box rtl-content">
+                <p>התפלגות אמיתית (למטרות בדיקה): {dist_info['type']}</p>
+                {'<p>תת-סוג: ' + dist_info.get('subtype', 'N/A') + '</p>' if 'subtype' in dist_info else ''}
+                <p>פרמטרים: {dist_info['params']}</p>
+            </div>
+        """, unsafe_allow_html=True)
+    
     # Display summary statistics
+    samples = st.session_state.samples
     st.markdown("""
         <div class="info-box rtl-content">
             <h4>סטטיסטיקה תיאורית:</h4>
@@ -414,6 +410,9 @@ def show():
         np.std(samples),
         np.median(samples)
     ), unsafe_allow_html=True)
+    
+    # Continue with the rest of your display_samples(), visualize_samples_and_qqplots(),
+    # and other visualization functions...
 
     # Display the raw samples
     display_samples(samples)
