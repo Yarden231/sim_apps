@@ -238,7 +238,6 @@ def perform_goodness_of_fit(samples, distribution, params):
     except ValueError as e:
         st.error(f"Error during goodness of fit tests: {e}")
 
-
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
@@ -281,15 +280,9 @@ def show():
         </div>
     """, unsafe_allow_html=True)
 
-
-    # After generating samples but before the QQ plots, add:
-    if 'samples' not in st.session_state:
-        # Generating realistic cooking time data (between 2 to 15 minutes)
-        samples = np.random.lognormal(mean=2, sigma=0.4, size=1000)
-        samples = (samples - min(samples)) * (13) / (max(samples) - min(samples)) + 2
-        st.session_state.samples = samples
-
-    samples = st.session_state.samples
+    # Generate fresh samples every time the page is loaded
+    samples = np.random.lognormal(mean=2, sigma=0.4, size=1000)
+    samples = (samples - min(samples)) * (13) / (max(samples) - min(samples)) + 2
 
     # Display summary statistics
     st.markdown("""
@@ -326,6 +319,7 @@ def show():
 
     # Continue with existing code for QQ plots and rest of the analysis...
     visualize_samples_and_qqplots(samples)
+
     # Distribution selection
     st.markdown("""
         <div class="custom-card rtl-content">
@@ -404,8 +398,6 @@ def show():
         
         perform_goodness_of_fit(samples, distribution_choice, params)
 
-# Keep the existing helper functions (generate_random_samples, visualize_samples_and_qqplots, 
-# estimate_parameters, plot_likelihood, perform_goodness_of_fit) as they are
 # To show the app, call the show() function
 if __name__ == "__main__":
     show()
