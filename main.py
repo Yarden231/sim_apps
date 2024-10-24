@@ -96,10 +96,10 @@ def main():
         "דף הבית": show_home,
         #"תיאוריה": show_theory,
         "התאמת התפלגות למודל": show_googness,
-        "סימולציית מוקד שירות": show_call_center,
-        "סימולציית משאית מזון": show_food_truck,
         "שיטות דגימה": show_sampling_methods,
-        "מחולל מספרים אקראיים": show_random_generator
+        "מחולל מספרים אקראיים": show_random_generator,
+        "סימולציית משאית מזון": show_food_truck,
+        "סימולציית מוקד שירות": show_call_center
     }
 
     # Add buttons for each page in the sidebar
