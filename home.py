@@ -79,7 +79,7 @@ def show():
         st.markdown("""
             <div class="card hebrew-text">
                 <h3 class="section-header">ברוכים הבאים!</h3>
-                <p>מערכת השירות של משאית המזון כוללת שלושה עמדות שירות:</p>
+                <p># מערכת השירות של משאית המזון כוללת שלושה עמדות שירות:</p>
                 <ul class="custom-list">
                     <li>🎯 עמדת הזמנה</li>
                     <li>👨‍🍳 עמדת הכנת מנות טעימות</li>
