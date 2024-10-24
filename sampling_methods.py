@@ -5,6 +5,7 @@ from scipy import stats
 from utils import set_rtl
 from utils import set_ltr_sliders
 import time
+from styles import get_custom_css
 # Call the set_rtl function to apply RTL styles
 set_rtl()
 
@@ -116,6 +117,7 @@ def run_sampling(sampling_function, num_samples, update_interval, title, progres
         #time.sleep(0.01)
 
 def show_sampling_methods():
+    st.markdown(get_custom_css(), unsafe_allow_html=True)
     st.markdown("""
         <div class="custom-header rtl-content">
             <h1>שיטות דגימה לסימולציית זמני שירות 🚚</h1>
