@@ -1,11 +1,11 @@
-import streamlit as st
-
 def show():
+    import streamlit as st
+    
     # Custom CSS to set text color to black
     st.markdown(
         """
         <style>
-        .stMarkdown, .stText, .stHeader, .stSubheader {
+        body, .css-1v3fvcr, .css-12oz5g7, .css-qbe2hs {
             color: black !important;
         }
         </style>
@@ -52,4 +52,3 @@ def show():
     st.write("""
     "הדרך הטובה ביותר לחזות את העתיד היא לסמלץ אותו." - לא ידוע
     """)
-
