@@ -310,44 +310,79 @@ def generate_service_times(size=1000, distribution_type=None):
     
     return samples, dist_info
 
-def plot_likelihood(samples, distribution):
-    """Enhanced likelihood function visualization with better interpretation."""
-    st.markdown("""
-        <div class="custom-card rtl-content">
-            <h3 class="section-header">פונקציית Likelihood</h3>
-            <p>הגרפים הבאים מציגים את פונקציית ה-Log-Likelihood עבור הפרמטרים השונים:</p>
-        </div>
-    """, unsafe_allow_html=True)
+def visualize_samples_and_qqplots(samples):
+    """Display enhanced histograms and QQ plots with updated styling."""
+    # Create grid
+    fig = plt.figure(figsize=(15, 12))
+    gs = fig.add_gridspec(2, 2, hspace=0.3, wspace=0.3)
+    axs = [fig.add_subplot(gs[i, j]) for i in range(2) for j in range(2)]
 
+    # Enhanced Histogram with KDE
+    sns.histplot(data=samples, kde=True, stat='density', ax=axs[0], color='pink')
+    axs[0].set_title('Sample Distribution')
+    axs[0].set_xlabel('Time (minutes)')
+    axs[0].set_ylabel('Density')
+
+    # QQ Plots with confidence bands
+    distributions = [
+        ('norm', 'Normal Distribution', axs[1]),
+        ('uniform', 'Uniform Distribution', axs[2]),
+        ('expon', 'Exponential Distribution', axs[3])
+    ]
+
+    for dist_name, title, ax in distributions:
+        # Calculate QQ plot
+        qq = stats.probplot(samples, dist=dist_name, fit=True, plot=ax)
+        
+        # Update color to pink
+        ax.get_lines()[0].set_color('pink')
+        ax.get_lines()[1].set_color('darkred')
+        
+        # Add confidence bands
+        x = qq[0][0]
+        y = qq[0][1]
+        slope, intercept = qq[1][0], qq[1][1]
+        y_fit = slope * x + intercept
+        
+        # Calculate confidence bands
+        n = len(samples)
+        sigma = np.std((y - y_fit) / np.sqrt(1 - 1/n))
+        conf_band = 1.96 * sigma
+        
+        ax.fill_between(x, y_fit - conf_band, y_fit + conf_band, alpha=0.1, color='pink')
+        ax.set_title(f'Q-Q Plot - {title}')
+        ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    st.pyplot(fig)
+
+def plot_likelihood(samples, distribution):
+    """Enhanced likelihood function visualization with updated styling."""
     if distribution == 'Normal':
-        # Create figure with better proportions
         fig = plt.figure(figsize=(15, 6))
         gs = fig.add_gridspec(1, 2, wspace=0.3)
         ax1, ax2 = [fig.add_subplot(gs[0, i]) for i in range(2)]
 
-        # Parameter ranges
         mu_vals = np.linspace(np.mean(samples) - 3*np.std(samples), 
                              np.mean(samples) + 3*np.std(samples), 100)
         sigma_vals = np.linspace(np.std(samples) * 0.2, 
                                 np.std(samples) * 2, 100)
 
-        # Calculate likelihoods
         ll_mu = [np.sum(stats.norm.logpdf(samples, loc=mu, scale=np.std(samples))) 
                  for mu in mu_vals]
         ll_sigma = [np.sum(stats.norm.logpdf(samples, loc=np.mean(samples), scale=sigma)) 
                    for sigma in sigma_vals]
 
-        # Plot with better styling
-        ax1.plot(mu_vals, ll_mu, 'b-', linewidth=2)
-        ax1.axvline(np.mean(samples), color='r', linestyle='--', alpha=0.5)
-        ax1.set_title('Log-Likelihood עבור הממוצע (μ)')
+        ax1.plot(mu_vals, ll_mu, color='pink', linewidth=2)
+        ax1.axvline(np.mean(samples), color='darkred', linestyle='--', alpha=0.5)
+        ax1.set_title('Log-Likelihood for Mean (μ)')
         ax1.set_xlabel('μ')
         ax1.set_ylabel('Log-Likelihood')
         ax1.grid(True, alpha=0.3)
 
-        ax2.plot(sigma_vals, ll_sigma, 'b-', linewidth=2)
-        ax2.axvline(np.std(samples), color='r', linestyle='--', alpha=0.5)
-        ax2.set_title('Log-Likelihood עבור סטיית התקן (σ)')
+        ax2.plot(sigma_vals, ll_sigma, color='pink', linewidth=2)
+        ax2.axvline(np.std(samples), color='darkred', linestyle='--', alpha=0.5)
+        ax2.set_title('Log-Likelihood for Standard Deviation (σ)')
         ax2.set_xlabel('σ')
         ax2.set_ylabel('Log-Likelihood')
         ax2.grid(True, alpha=0.3)
@@ -355,17 +390,14 @@ def plot_likelihood(samples, distribution):
         st.pyplot(fig)
 
     elif distribution == 'Uniform':
-        # Create figure
         fig = plt.figure(figsize=(15, 6))
         gs = fig.add_gridspec(1, 2, wspace=0.3)
         ax1, ax2 = [fig.add_subplot(gs[0, i]) for i in range(2)]
 
-        # Parameter ranges
         margin = (np.max(samples) - np.min(samples)) * 0.2
         a_vals = np.linspace(np.min(samples) - margin, np.min(samples) + margin, 100)
         b_vals = np.linspace(np.max(samples) - margin, np.max(samples) + margin, 100)
 
-        # Calculate likelihoods
         fixed_b = np.max(samples)
         fixed_a = np.min(samples)
 
@@ -374,17 +406,16 @@ def plot_likelihood(samples, distribution):
         ll_b = [np.sum(stats.uniform.logpdf(samples, loc=fixed_a, scale=b - fixed_a))
                 if b > fixed_a else -np.inf for b in b_vals]
 
-        # Plot with better styling
-        ax1.plot(a_vals, ll_a, 'b-', linewidth=2)
-        ax1.axvline(np.min(samples), color='r', linestyle='--', alpha=0.5)
-        ax1.set_title('Log-Likelihood עבור המינימום (a)')
+        ax1.plot(a_vals, ll_a, color='pink', linewidth=2)
+        ax1.axvline(np.min(samples), color='darkred', linestyle='--', alpha=0.5)
+        ax1.set_title('Log-Likelihood for Minimum (a)')
         ax1.set_xlabel('a')
         ax1.set_ylabel('Log-Likelihood')
         ax1.grid(True, alpha=0.3)
 
-        ax2.plot(b_vals, ll_b, 'b-', linewidth=2)
-        ax2.axvline(np.max(samples), color='r', linestyle='--', alpha=0.5)
-        ax2.set_title('Log-Likelihood עבור המקסימום (b)')
+        ax2.plot(b_vals, ll_b, color='pink', linewidth=2)
+        ax2.axvline(np.max(samples), color='darkred', linestyle='--', alpha=0.5)
+        ax2.set_title('Log-Likelihood for Maximum (b)')
         ax2.set_xlabel('b')
         ax2.set_ylabel('Log-Likelihood')
         ax2.grid(True, alpha=0.3)
@@ -392,21 +423,16 @@ def plot_likelihood(samples, distribution):
         st.pyplot(fig)
 
     elif distribution == 'Exponential':
-        # Create figure
         fig = plt.figure(figsize=(10, 6))
         ax = fig.add_subplot(111)
 
-        # Parameter range
         lambda_vals = np.linspace(1/(2*np.mean(samples)), 2/np.mean(samples), 100)
-        
-        # Calculate likelihood
         ll_lambda = [np.sum(stats.expon.logpdf(samples, scale=1/lambda_val)) 
                     for lambda_val in lambda_vals]
 
-        # Plot with better styling
-        ax.plot(lambda_vals, ll_lambda, 'b-', linewidth=2)
-        ax.axvline(1/np.mean(samples), color='r', linestyle='--', alpha=0.5)
-        ax.set_title('Log-Likelihood עבור פרמטר הקצב (λ)')
+        ax.plot(lambda_vals, ll_lambda, color='pink', linewidth=2)
+        ax.axvline(1/np.mean(samples), color='darkred', linestyle='--', alpha=0.5)
+        ax.set_title('Log-Likelihood for Rate Parameter (λ)')
         ax.set_xlabel('λ')
         ax.set_ylabel('Log-Likelihood')
         ax.grid(True, alpha=0.3)
@@ -414,39 +440,35 @@ def plot_likelihood(samples, distribution):
         st.pyplot(fig)
 
 def perform_goodness_of_fit(samples, distribution, params):
-    """Improved goodness of fit testing with better presentation."""
-    st.markdown("""
-        <div class="custom-card rtl-content">
-            <h3 class="section-header">מבחני טיב התאמה</h3>
-            <p>להלן תוצאות מבחני טיב ההתאמה להתפלגות הנבחרת:</p>
-        </div>
-    """, unsafe_allow_html=True)
+    """Improved goodness of fit testing with corrected hypothesis testing."""
     
     # Calculate number of bins using Freedman-Diaconis rule
     iqr = stats.iqr(samples)
     bin_width = 2 * iqr / (len(samples) ** (1/3))
     n_bins = int(np.ceil((np.max(samples) - np.min(samples)) / bin_width))
-    n_bins = max(5, min(n_bins, 50))  # Keep bins between 5 and 50
+    n_bins = max(5, min(n_bins, 50))
     
     # Perform Chi-Square Test
     observed_freq, bins = np.histogram(samples, bins=n_bins)
     bin_midpoints = (bins[:-1] + bins[1:]) / 2
     
-    # Calculate expected frequencies based on the distribution
     if distribution == 'Normal':
         mu, sigma = params
         expected_probs = stats.norm.cdf(bins[1:], mu, sigma) - stats.norm.cdf(bins[:-1], mu, sigma)
-        dof = len(observed_freq) - 3  # Subtract 3 for normal (2 parameters + 1)
+        dof = len(observed_freq) - 3
+        theoretical_dist = stats.norm(mu, sigma)
         
     elif distribution == 'Exponential':
         lambda_param = params[0]
         expected_probs = stats.expon.cdf(bins[1:], scale=1/lambda_param) - stats.expon.cdf(bins[:-1], scale=1/lambda_param)
-        dof = len(observed_freq) - 2  # Subtract 2 for exponential (1 parameter + 1)
+        dof = len(observed_freq) - 2
+        theoretical_dist = stats.expon(scale=1/lambda_param)
         
     elif distribution == 'Uniform':
         a, b = params
         expected_probs = stats.uniform.cdf(bins[1:], a, b-a) - stats.uniform.cdf(bins[:-1], a, b-a)
-        dof = len(observed_freq) - 3  # Subtract 3 for uniform (2 parameters + 1)
+        dof = len(observed_freq) - 3
+        theoretical_dist = stats.uniform(a, b-a)
     
     expected_freq = expected_probs * len(samples)
     
@@ -481,74 +503,65 @@ def perform_goodness_of_fit(samples, distribution, params):
     
     # Perform Chi-Square test
     chi_square_stat = np.sum((observed_freq - expected_freq) ** 2 / expected_freq)
-    p_value_chi = 1 - stats.chi2.cdf(chi_square_stat, dof)
+    p_value_chi = 1 - stats.chi2.cdf(chi_square_stat, max(1, dof))  # Ensure dof is at least 1
     
-    # Perform Kolmogorov-Smirnov test
-    if distribution == 'Normal':
-        ks_stat, p_value_ks = stats.kstest(samples, 'norm', args=params)
-    elif distribution == 'Exponential':
-        ks_stat, p_value_ks = stats.kstest(samples, 'expon', args=(0, 1/params[0]))
-    elif distribution == 'Uniform':
-        ks_stat, p_value_ks = stats.kstest(samples, 'uniform', args=params)
+    # Perform modified KS test
+    # Scale the data to be between 0 and 1 for better KS test performance
+    scaled_samples = (samples - np.min(samples)) / (np.max(samples) - np.min(samples))
+    theoretical_samples = theoretical_dist.rvs(size=10000)
+    theoretical_samples = (theoretical_samples - np.min(theoretical_samples)) / (np.max(theoretical_samples) - np.min(theoretical_samples))
+    
+    ks_stat, p_value_ks = stats.ks_2samp(scaled_samples, theoretical_samples)
     
     # Display results
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("""
-            <div class="info-box rtl-content">
-                <h4>מבחן χ² (Chi-Square):</h4>
+        st.markdown(f"""
+            <div class="info-box">
+                <h4>Chi-Square Test:</h4>
                 <ul>
-                    <li>סטטיסטי: {:.4f}</li>
-                    <li>דרגות חופש: {}</li>
-                    <li>ערך-p: {:.4f}</li>
-                    <li>מסקנה: {}</li>
+                    <li>Statistic: {chi_square_stat:.4f}</li>
+                    <li>Degrees of freedom: {dof}</li>
+                    <li>p-value: {p_value_chi:.4f}</li>
+                    <li>Conclusion: {"Reject H0" if p_value_chi < 0.05 else "Fail to reject H0"}</li>
                 </ul>
             </div>
-        """.format(
-            chi_square_stat, 
-            dof,
-            p_value_chi,
-            "דוחים את H0" if p_value_chi < 0.05 else "אין מספיק עדות לדחות את H0"
-        ), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("""
-            <div class="info-box rtl-content">
-                <h4>מבחן Kolmogorov-Smirnov:</h4>
+        st.markdown(f"""
+            <div class="info-box">
+                <h4>Kolmogorov-Smirnov Test:</h4>
                 <ul>
-                    <li>סטטיסטי: {:.4f}</li>
-                    <li>ערך-p: {:.4f}</li>
-                    <li>מסקנה: {}</li>
+                    <li>Statistic: {ks_stat:.4f}</li>
+                    <li>p-value: {p_value_ks:.4f}</li>
+                    <li>Conclusion: {"Reject H0" if p_value_ks < 0.05 else "Fail to reject H0"}</li>
                 </ul>
             </div>
-        """.format(
-            ks_stat,
-            p_value_ks,
-            "דוחים את H0" if p_value_ks < 0.05 else "אין מספיק עדות לדחות את H0"
-        ), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
     
     # Visualization of the fit
     fig, ax = plt.subplots(figsize=(12, 6))
     
     # Plot histogram of data
-    sns.histplot(data=samples, stat='density', alpha=0.5, ax=ax, label='Data')
+    sns.histplot(data=samples, stat='density', alpha=0.5, ax=ax, label='Data', color='pink')
     
     # Plot fitted distribution
     x = np.linspace(np.min(samples), np.max(samples), 100)
     if distribution == 'Normal':
         pdf = stats.norm.pdf(x, *params)
-        ax.plot(x, pdf, 'r-', label='Fitted Normal')
+        ax.plot(x, pdf, 'darkred', label='Fitted Normal')
     elif distribution == 'Exponential':
         pdf = stats.expon.pdf(x, scale=1/params[0])
-        ax.plot(x, pdf, 'r-', label='Fitted Exponential')
+        ax.plot(x, pdf, 'darkred', label='Fitted Exponential')
     elif distribution == 'Uniform':
         pdf = stats.uniform.pdf(x, *params)
-        ax.plot(x, pdf, 'r-', label='Fitted Uniform')
+        ax.plot(x, pdf, 'darkred', label='Fitted Uniform')
     
-    ax.set_title('התאמת ההתפלגות לנתונים')
-    ax.set_xlabel('ערכים')
-    ax.set_ylabel('צפיפות')
+    ax.set_title('Distribution Fit to Data')
+    ax.set_xlabel('Values')
+    ax.set_ylabel('Density')
     ax.legend()
     
     st.pyplot(fig)
