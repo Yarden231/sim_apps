@@ -94,7 +94,7 @@ def main():
     # Define the available pages and their corresponding functions
     pages = {
         "דף הבית": show_home,
-        "תיאוריה": show_theory,
+        #"תיאוריה": show_theory,
         "התאמת התפלגות למודל": show_googness,
         "סימולציית מוקד שירות": show_call_center,
         "סימולציית משאית מזון": show_food_truck,
