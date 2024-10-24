@@ -354,13 +354,7 @@ def perform_goodness_of_fit(samples, distribution, params):
             conclusion += f"• {test_name}: אין מספיק עדות לדחות את השערת האפס (H0). ייתכן שההתפלגות מתאימה לנתונים.\n"
     
     return test_results, conclusion
-import streamlit as st
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import scipy.stats as stats
-from utils import set_rtl, set_ltr_sliders
-from styles import get_custom_css
+
 
 def show():
     set_rtl()
@@ -398,7 +392,7 @@ def show():
 
     # Generate fresh samples every time the page is loaded
     # Generate new samples each time using the current timestamp
-    samples = generate_realistic_service_times()
+    samples = generate_service_times()
     # Display summary statistics
     st.markdown("""
         <div class="info-box rtl-content">
