@@ -79,6 +79,130 @@ def display_statistics(samples):
     st.write(f"**Minimum Value:** {min_val:.2f}")
     st.write(f"**Maximum Value:** {max_val:.2f}")
 
+def run_sampling(sampling_function, num_samples, update_interval, title, progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=False, distribution_func=None, true_density=None):
+    """Run sampling with fixed progress bar calculation."""
+    # Generate all samples at once
+    all_samples = sampling_function(num_samples)
+    
+    # Calculate number of iterations
+    num_iterations = (num_samples + update_interval - 1) // update_interval
+    
+    # Initialize samples list
+    samples = []
+    
+    # Process samples in batches
+    for i in range(num_iterations):
+        # Calculate current batch indices
+        start_idx = i * update_interval
+        end_idx = min(start_idx + update_interval, num_samples)
+        
+        # Add batch samples
+        batch_samples = all_samples[start_idx:end_idx]
+        samples.extend(batch_samples)
+        
+        # Update visualizations
+        with plot_placeholder.container():
+            col1, col2 = st.columns(2)
+            with col1:
+                fig = plot_histogram(samples, title, distribution_func, true_density)
+                st.pyplot(fig)
+                plt.close(fig)
+            with col2:
+                qqplot_fig = plot_qqplot(samples, title)
+                st.pyplot(qqplot_fig)
+                plt.close(qqplot_fig)
+
+        # Update statistics
+        stats_placeholder.empty()
+        with stats_placeholder:
+            display_statistics(samples)
+        
+        # Print sample values if requested
+        if print_samples:
+            st.write(f"**Sample values (first {min(10, len(samples))} values):** {samples[:10]}")
+        
+        # Update progress bar (ensure value is between 0 and 1)
+        progress = min(1.0, (end_idx) / num_samples)
+        progress_bar.progress(progress)
+
+def plot_histogram(samples, title, distribution_func=None, true_density=None):
+    """Plot histogram with better styling."""
+    fig, ax = plt.subplots(figsize=(8, 5))
+    
+    # Plot histogram
+    bins = np.linspace(min(samples), max(samples), 30)
+    ax.hist(samples, bins=bins, density=True, alpha=0.7, color='pink', label='Sampled Data')
+    
+    # Plot true density if provided
+    if true_density:
+        x = np.linspace(min(samples), max(samples), 100)
+        ax.plot(x, true_density(x), 'darkred', linewidth=2, label='True Density')
+    
+    # Plot target distribution if provided
+    if distribution_func:
+        x = np.linspace(0, 1, 100)
+        ax.plot(x, distribution_func(x), 'darkred', linewidth=2, linestyle='--', label='Target Distribution')
+
+    # Styling
+    ax.set_title(title)
+    ax.set_xlabel("Time (minutes)")
+    ax.set_ylabel("Density")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
+    
+    return fig
+
+def plot_qqplot(samples, title):
+    """Plot QQ plot with better styling."""
+    fig, ax = plt.subplots(figsize=(8, 5))
+    
+    # Create QQ plot
+    stats.probplot(samples, dist="norm", plot=ax)
+    
+    # Update colors
+    ax.get_lines()[0].set_markerfacecolor('pink')
+    ax.get_lines()[0].set_markeredgecolor('darkred')
+    ax.get_lines()[1].set_color('darkred')
+    
+    # Styling
+    ax.set_title(f"{title}\nQ-Q Plot")
+    ax.grid(True, alpha=0.3)
+    
+    return fig
+
+def display_statistics(samples):
+    """Display statistics with better formatting."""
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("""
+            <div class="info-box rtl-content">
+                <h4>מדדי מרכז:</h4>
+                <ul style="list-style-type: none; padding-left: 0;">
+                    <li>ממוצע: {:.2f} דקות</li>
+                    <li>חציון: {:.2f} דקות</li>
+                </ul>
+            </div>
+        """.format(
+            np.mean(samples),
+            np.median(samples)
+        ), unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+            <div class="info-box rtl-content">
+                <h4>מדדי פיזור:</h4>
+                <ul style="list-style-type: none; padding-left: 0;">
+                    <li>סטיית תקן: {:.2f} דקות</li>
+                    <li>טווח: {:.2f} - {:.2f} דקות</li>
+                </ul>
+            </div>
+        """.format(
+            np.std(samples),
+            np.min(samples),
+            np.max(samples)
+        ), unsafe_allow_html=True)
+
 def run_sampling(sampling_function, num_samples, update_interval, title, progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples, distribution_func=None, true_density=None):
     # Generate all samples at once
     all_samples = sampling_function(num_samples)
