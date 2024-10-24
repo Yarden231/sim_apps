@@ -56,7 +56,7 @@ def display_samples(samples):
     with col2:
         # Create a simple line plot of all samples
         fig, ax = plt.subplots(figsize=(10, 6))
-        plt.plot(samples, marker='o', linestyle='None', alpha=0.5, markersize=3)
+        plt.plot(samples, marker='o', linestyle='None', alpha=0.5, markersize=3,color='darkred')
         plt.title('Service Times')
         plt.xlabel('Sample Number')
         plt.ylabel('Time (minutes)')
