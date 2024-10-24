@@ -23,6 +23,18 @@ def generate_random_samples(sample_size):
         lam = np.random.uniform(0.5, 2)
         samples = np.random.exponential(scale=1/lam, size=sample_size)
         return samples, 'Exponential', (lam,)
+    
+def visualize_samples(samples):
+    """Display histograms and QQ plots of the given samples for three distributions in a grid."""
+    st.subheader("Histogram and QQ-Plots for Three Distributions")
+
+    # Create a grid of 2x2 (for histogram and QQ-plots)
+    fig= plt.plot()  # Adjust the size to fit the page width
+
+    # Histogram
+    sns.histplot(samples, kde=False)
+    fig.set_title('Histogram of Samples')
+    fig.show()
 
 def visualize_samples_and_qqplots(samples):
     """Display histograms and QQ plots of the given samples for three distributions in a grid."""
@@ -32,7 +44,7 @@ def visualize_samples_and_qqplots(samples):
     fig, axs = plt.subplots(2, 2, figsize=(12, 8))  # Adjust the size to fit the page width
 
     # Histogram
-    sns.histplot(samples, kde=True, ax=axs[0, 0])
+    sns.histplot(samples, kde=False, ax=axs[0, 0])
     axs[0, 0].set_title('Histogram of Samples')
 
     # QQ-Plot for Normal Distribution
@@ -241,6 +253,7 @@ def show():
 
     # Display summary statistics
     samples = st.session_state.samples
+    visualize_samples(samples)
     st.markdown("""
         <div class="info-box rtl-content">
             <h4>סטטיסטיקה תיאורית:</h4>
