@@ -265,7 +265,7 @@ def show_sampling_methods():
         show_implementation()
 
 def show_implementation():
-    """Display code implementations"""
+    """Display code implementations with LTR formatting"""
     st.markdown("""
         <div class="custom-card rtl-content">
             <h3>מימוש בקוד</h3>
@@ -273,48 +273,120 @@ def show_implementation():
         </div>
     """, unsafe_allow_html=True)
     
-    with st.expander("הצג קוד מימוש"):
+    st.markdown('<div dir="ltr">', unsafe_allow_html=True)  # Set LTR direction
+    with st.expander("Show Implementation Code"):
         if st.session_state.selected_sampling == 'normal':
             st.code("""
-# דגימה מהתפלגות נורמלית
+# Sampling from normal distribution
 def sample_normal(mu, sigma, size):
+    # Generate samples with specified mean and standard deviation
     samples = np.random.normal(mu, sigma, size)
-    return np.clip(samples, 2, 15)  # הגבלת זמנים לטווח הגיוני
+    # Clip values to realistic preparation times (2-15 minutes)
+    return np.clip(samples, 2, 15)
 
-# דוגמת שימוש
+# Usage example:
+# Sampling preparation times with mean=8 minutes and std=1 minute
 samples = sample_normal(mu=8, sigma=1, size=1000)
-            """, language='python')
+""", language='python')
             
         elif st.session_state.selected_sampling == 'exponential':
             st.code("""
-# דגימה מהתפלגות מעריכית
+# Sampling from exponential distribution
 def sample_exponential(lambda_param, size):
+    # Generate samples with specified rate parameter
+    # scale = 1/lambda is the mean time between events
     samples = np.random.exponential(1/lambda_param, size)
-    return np.clip(samples, 2, 15)  # הגבלת זמנים לטווח הגיוני
+    # Clip values to realistic preparation times (2-15 minutes)
+    return np.clip(samples, 2, 15)
 
-# דוגמת שימוש
+# Usage example:
+# Sampling preparation times with mean=5 minutes (lambda=0.2)
 samples = sample_exponential(lambda_param=0.2, size=1000)
-            """, language='python')
+""", language='python')
             
         elif st.session_state.selected_sampling == 'composite':
             st.code("""
-# דגימה מהתפלגות מורכבת
+# Sampling from mixture distribution
 def sample_composite(size):
-    # חלוקה ל-20% מנות פשוטות ו-80% מנות מורכבות
+    # Split between simple orders (20%) and complex orders (80%)
     n_simple = int(0.2 * size)
     n_complex = size - n_simple
     
-    # דגימת זמני הכנה למנות פשוטות ומורכבות
+    # Sample preparation times for both types of orders
+    # Simple orders: mean=5 minutes, std=1 minute
     simple_orders = np.random.normal(5, 1, n_simple)
+    # Complex orders: mean=10 minutes, std=1.5 minutes
     complex_orders = np.random.normal(10, 1.5, n_complex)
     
-    # שילוב הדגימות
+    # Combine samples from both distributions
     all_orders = np.concatenate([simple_orders, complex_orders])
-    return np.clip(all_orders, 2, 15)  # הגבלת זמנים לטווח הגיוני
+    # Clip values to realistic preparation times (2-15 minutes)
+    return np.clip(all_orders, 2, 15)
 
-# דוגמת שימוש
+# Usage example:
+# Sampling 1000 preparation times from mixture distribution
 samples = sample_composite(size=1000)
-            """, language='python')
+""", language='python')
 
+        # Add helper functions code
+        st.markdown("""
+            <div class="custom-card" style="margin-top: 20px;">
+                <h4>Helper Functions</h4>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        st.code("""
+# Utility functions for handling service times
+
+def clip_and_validate_times(samples, min_time=2, max_time=15):
+    """Ensure service times are within realistic bounds"""
+    return np.clip(samples, min_time, max_time)
+
+def add_random_variation(samples, variation_percent=10):
+    """Add controlled random variation to service times
+    
+    Args:
+        samples: Array of service times
+        variation_percent: Maximum percentage of variation
+    
+    Returns:
+        Array of service times with added random variation
+    """
+    variation = samples * (variation_percent/100) * np.random.uniform(-1, 1, len(samples))
+    return samples + variation
+
+def generate_service_times(distribution_type, size, **params):
+    """Main function for generating service times
+    
+    Args:
+        distribution_type: 'normal', 'exponential', or 'composite'
+        size: Number of samples to generate
+        **params: Distribution parameters (mu, sigma, lambda)
+    
+    Returns:
+        Array of generated service times
+    """
+    if distribution_type == 'normal':
+        samples = np.random.normal(params['mu'], params['sigma'], size)
+    elif distribution_type == 'exponential':
+        samples = np.random.exponential(1/params['lambda'], size)
+    elif distribution_type == 'composite':
+        samples = sample_composite(size)
+    
+    # Validate times and add realistic variation
+    samples = clip_and_validate_times(samples)
+    samples = add_random_variation(samples)
+    
+    return samples
+
+# Example usage:
+service_times = generate_service_times(
+    distribution_type='normal',
+    size=1000,
+    mu=8,    # mean service time
+    sigma=1  # standard deviation
+)
+""", language='python')
+    st.markdown('</div>', unsafe_allow_html=True)  # Close LTR div
 if __name__ == "__main__":
     show_sampling_methods()
