@@ -203,52 +203,6 @@ def estimate_parameters(samples, distribution):
         
         return a, b
 
-def plot_likelihood(samples, distribution):
-    """Enhanced likelihood function visualization with better interpretation."""
-    st.markdown("""
-        <div class="custom-card rtl-content">
-            <h3 class="section-header">פונקציית Likelihood</h3>
-            <p>הגרפים הבאים מציגים את פונקציית ה-Log-Likelihood עבור הפרמטרים השונים:</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    if distribution == 'Normal':
-        # Create figure with better proportions
-        fig = plt.figure(figsize=(15, 6))
-        gs = fig.add_gridspec(1, 2, wspace=0.3)
-        ax1, ax2 = [fig.add_subplot(gs[0, i]) for i in range(2)]
-
-        # Parameter ranges
-        mu_vals = np.linspace(np.mean(samples) - 3*np.std(samples), 
-                             np.mean(samples) + 3*np.std(samples), 100)
-        sigma_vals = np.linspace(np.std(samples) * 0.2, 
-                                np.std(samples) * 2, 100)
-
-        # Calculate likelihoods
-        ll_mu = [np.sum(stats.norm.logpdf(samples, loc=mu, scale=np.std(samples))) 
-                 for mu in mu_vals]
-        ll_sigma = [np.sum(stats.norm.logpdf(samples, loc=np.mean(samples), scale=sigma)) 
-                   for sigma in sigma_vals]
-
-        # Plot with better styling
-        ax1.plot(mu_vals, ll_mu, 'b-', linewidth=2)
-        ax1.axvline(np.mean(samples), color='r', linestyle='--', alpha=0.5)
-        ax1.set_title('Log-Likelihood עבור הממוצע (μ)')
-        ax1.set_xlabel('μ')
-        ax1.set_ylabel('Log-Likelihood')
-        ax1.grid(True, alpha=0.3)
-
-        ax2.plot(sigma_vals, ll_sigma, 'b-', linewidth=2)
-        ax2.axvline(np.std(samples), color='r', linestyle='--', alpha=0.5)
-        ax2.set_title('Log-Likelihood עבור סטיית התקן (σ)')
-        ax2.set_xlabel('σ')
-        ax2.set_ylabel('Log-Likelihood')
-        ax2.grid(True, alpha=0.3)
-
-        st.pyplot(fig)
-
-    # Similar improvements for Uniform and Exponential distributions...
-    # (Code continues with similar enhancements for other distributions)
 def generate_service_times(size=1000, distribution_type=None):
     """
     Generate service times from various distributions.
@@ -356,15 +310,123 @@ def generate_service_times(size=1000, distribution_type=None):
     
     return samples, dist_info
 
+def plot_likelihood(samples, distribution):
+    """Enhanced likelihood function visualization with better interpretation."""
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">פונקציית Likelihood</h3>
+            <p>הגרפים הבאים מציגים את פונקציית ה-Log-Likelihood עבור הפרמטרים השונים:</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    if distribution == 'Normal':
+        # Create figure with better proportions
+        fig = plt.figure(figsize=(15, 6))
+        gs = fig.add_gridspec(1, 2, wspace=0.3)
+        ax1, ax2 = [fig.add_subplot(gs[0, i]) for i in range(2)]
+
+        # Parameter ranges
+        mu_vals = np.linspace(np.mean(samples) - 3*np.std(samples), 
+                             np.mean(samples) + 3*np.std(samples), 100)
+        sigma_vals = np.linspace(np.std(samples) * 0.2, 
+                                np.std(samples) * 2, 100)
+
+        # Calculate likelihoods
+        ll_mu = [np.sum(stats.norm.logpdf(samples, loc=mu, scale=np.std(samples))) 
+                 for mu in mu_vals]
+        ll_sigma = [np.sum(stats.norm.logpdf(samples, loc=np.mean(samples), scale=sigma)) 
+                   for sigma in sigma_vals]
+
+        # Plot with better styling
+        ax1.plot(mu_vals, ll_mu, 'b-', linewidth=2)
+        ax1.axvline(np.mean(samples), color='r', linestyle='--', alpha=0.5)
+        ax1.set_title('Log-Likelihood עבור הממוצע (μ)')
+        ax1.set_xlabel('μ')
+        ax1.set_ylabel('Log-Likelihood')
+        ax1.grid(True, alpha=0.3)
+
+        ax2.plot(sigma_vals, ll_sigma, 'b-', linewidth=2)
+        ax2.axvline(np.std(samples), color='r', linestyle='--', alpha=0.5)
+        ax2.set_title('Log-Likelihood עבור סטיית התקן (σ)')
+        ax2.set_xlabel('σ')
+        ax2.set_ylabel('Log-Likelihood')
+        ax2.grid(True, alpha=0.3)
+
+        st.pyplot(fig)
+
+    elif distribution == 'Uniform':
+        # Create figure
+        fig = plt.figure(figsize=(15, 6))
+        gs = fig.add_gridspec(1, 2, wspace=0.3)
+        ax1, ax2 = [fig.add_subplot(gs[0, i]) for i in range(2)]
+
+        # Parameter ranges
+        margin = (np.max(samples) - np.min(samples)) * 0.2
+        a_vals = np.linspace(np.min(samples) - margin, np.min(samples) + margin, 100)
+        b_vals = np.linspace(np.max(samples) - margin, np.max(samples) + margin, 100)
+
+        # Calculate likelihoods
+        fixed_b = np.max(samples)
+        fixed_a = np.min(samples)
+
+        ll_a = [np.sum(stats.uniform.logpdf(samples, loc=a, scale=fixed_b - a))
+                if fixed_b > a else -np.inf for a in a_vals]
+        ll_b = [np.sum(stats.uniform.logpdf(samples, loc=fixed_a, scale=b - fixed_a))
+                if b > fixed_a else -np.inf for b in b_vals]
+
+        # Plot with better styling
+        ax1.plot(a_vals, ll_a, 'b-', linewidth=2)
+        ax1.axvline(np.min(samples), color='r', linestyle='--', alpha=0.5)
+        ax1.set_title('Log-Likelihood עבור המינימום (a)')
+        ax1.set_xlabel('a')
+        ax1.set_ylabel('Log-Likelihood')
+        ax1.grid(True, alpha=0.3)
+
+        ax2.plot(b_vals, ll_b, 'b-', linewidth=2)
+        ax2.axvline(np.max(samples), color='r', linestyle='--', alpha=0.5)
+        ax2.set_title('Log-Likelihood עבור המקסימום (b)')
+        ax2.set_xlabel('b')
+        ax2.set_ylabel('Log-Likelihood')
+        ax2.grid(True, alpha=0.3)
+
+        st.pyplot(fig)
+
+    elif distribution == 'Exponential':
+        # Create figure
+        fig = plt.figure(figsize=(10, 6))
+        ax = fig.add_subplot(111)
+
+        # Parameter range
+        lambda_vals = np.linspace(1/(2*np.mean(samples)), 2/np.mean(samples), 100)
+        
+        # Calculate likelihood
+        ll_lambda = [np.sum(stats.expon.logpdf(samples, scale=1/lambda_val)) 
+                    for lambda_val in lambda_vals]
+
+        # Plot with better styling
+        ax.plot(lambda_vals, ll_lambda, 'b-', linewidth=2)
+        ax.axvline(1/np.mean(samples), color='r', linestyle='--', alpha=0.5)
+        ax.set_title('Log-Likelihood עבור פרמטר הקצב (λ)')
+        ax.set_xlabel('λ')
+        ax.set_ylabel('Log-Likelihood')
+        ax.grid(True, alpha=0.3)
+
+        st.pyplot(fig)
+
 def perform_goodness_of_fit(samples, distribution, params):
-    """
-    Improved goodness of fit testing with proper handling of different distributions
-    and degrees of freedom.
-    """
-    test_results = []
+    """Improved goodness of fit testing with better presentation."""
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">מבחני טיב התאמה</h3>
+            <p>להלן תוצאות מבחני טיב ההתאמה להתפלגות הנבחרת:</p>
+        </div>
+    """, unsafe_allow_html=True)
     
-    # Calculate number of bins using Sturges' rule
-    n_bins = int(np.ceil(np.log2(len(samples)) + 1))
+    # Calculate number of bins using Freedman-Diaconis rule
+    iqr = stats.iqr(samples)
+    bin_width = 2 * iqr / (len(samples) ** (1/3))
+    n_bins = int(np.ceil((np.max(samples) - np.min(samples)) / bin_width))
+    n_bins = max(5, min(n_bins, 50))  # Keep bins between 5 and 50
     
     # Perform Chi-Square Test
     observed_freq, bins = np.histogram(samples, bins=n_bins)
@@ -388,18 +450,38 @@ def perform_goodness_of_fit(samples, distribution, params):
     
     expected_freq = expected_probs * len(samples)
     
-    # Remove bins with expected frequency < 5 (combining them)
+    # Combine bins with expected frequency < 5
     mask = expected_freq >= 5
     if not all(mask):
-        observed_freq = np.array([sum(observed_freq[~mask])] + list(observed_freq[mask]))
-        expected_freq = np.array([sum(expected_freq[~mask])] + list(expected_freq[mask]))
-        dof -= len(mask) - sum(mask) - 1
+        combined_obs = []
+        combined_exp = []
+        current_obs = 0
+        current_exp = 0
+        
+        for obs, exp in zip(observed_freq, expected_freq):
+            if exp < 5 or current_exp + exp < 5:
+                current_obs += obs
+                current_exp += exp
+            else:
+                if current_obs > 0:
+                    combined_obs.append(current_obs)
+                    combined_exp.append(current_exp)
+                combined_obs.append(obs)
+                combined_exp.append(exp)
+                current_obs = 0
+                current_exp = 0
+        
+        if current_obs > 0:
+            combined_obs.append(current_obs)
+            combined_exp.append(current_exp)
+        
+        observed_freq = np.array(combined_obs)
+        expected_freq = np.array(combined_exp)
+        dof = len(observed_freq) - 1 - (3 if distribution == 'Normal' else 2)
     
-    # Perform Chi-Square test with correct degrees of freedom
+    # Perform Chi-Square test
     chi_square_stat = np.sum((observed_freq - expected_freq) ** 2 / expected_freq)
     p_value_chi = 1 - stats.chi2.cdf(chi_square_stat, dof)
-    
-    test_results.append(f"Chi-Square Test: statistic={chi_square_stat:.4f}, p-value={p_value_chi:.4f}")
     
     # Perform Kolmogorov-Smirnov test
     if distribution == 'Normal':
@@ -409,21 +491,67 @@ def perform_goodness_of_fit(samples, distribution, params):
     elif distribution == 'Uniform':
         ks_stat, p_value_ks = stats.kstest(samples, 'uniform', args=params)
     
-    test_results.append(f"KS Test: statistic={ks_stat:.4f}, p-value={p_value_ks:.4f}")
+    # Display results
+    col1, col2 = st.columns(2)
     
-    # Format results for display
-    conclusion = "מסקנות המבחנים הסטטיסטיים:\n\n"
+    with col1:
+        st.markdown("""
+            <div class="info-box rtl-content">
+                <h4>מבחן χ² (Chi-Square):</h4>
+                <ul>
+                    <li>סטטיסטי: {:.4f}</li>
+                    <li>דרגות חופש: {}</li>
+                    <li>ערך-p: {:.4f}</li>
+                    <li>מסקנה: {}</li>
+                </ul>
+            </div>
+        """.format(
+            chi_square_stat, 
+            dof,
+            p_value_chi,
+            "דוחים את H0" if p_value_chi < 0.05 else "אין מספיק עדות לדחות את H0"
+        ), unsafe_allow_html=True)
     
-    for result in test_results:
-        test_name = result.split(':')[0]
-        p_value = float(result.split('p-value=')[1])
-        
-        if p_value < 0.05:
-            conclusion += f"• {test_name}: דוחים את השערת האפס (H0). הנתונים כנראה אינם מתפלגים לפי ההתפלגות הנבחרת.\n"
-        else:
-            conclusion += f"• {test_name}: אין מספיק עדות לדחות את השערת האפס (H0). ייתכן שההתפלגות מתאימה לנתונים.\n"
+    with col2:
+        st.markdown("""
+            <div class="info-box rtl-content">
+                <h4>מבחן Kolmogorov-Smirnov:</h4>
+                <ul>
+                    <li>סטטיסטי: {:.4f}</li>
+                    <li>ערך-p: {:.4f}</li>
+                    <li>מסקנה: {}</li>
+                </ul>
+            </div>
+        """.format(
+            ks_stat,
+            p_value_ks,
+            "דוחים את H0" if p_value_ks < 0.05 else "אין מספיק עדות לדחות את H0"
+        ), unsafe_allow_html=True)
     
-    return test_results, conclusion
+    # Visualization of the fit
+    fig, ax = plt.subplots(figsize=(12, 6))
+    
+    # Plot histogram of data
+    sns.histplot(data=samples, stat='density', alpha=0.5, ax=ax, label='Data')
+    
+    # Plot fitted distribution
+    x = np.linspace(np.min(samples), np.max(samples), 100)
+    if distribution == 'Normal':
+        pdf = stats.norm.pdf(x, *params)
+        ax.plot(x, pdf, 'r-', label='Fitted Normal')
+    elif distribution == 'Exponential':
+        pdf = stats.expon.pdf(x, scale=1/params[0])
+        ax.plot(x, pdf, 'r-', label='Fitted Exponential')
+    elif distribution == 'Uniform':
+        pdf = stats.uniform.pdf(x, *params)
+        ax.plot(x, pdf, 'r-', label='Fitted Uniform')
+    
+    ax.set_title('התאמת ההתפלגות לנתונים')
+    ax.set_xlabel('ערכים')
+    ax.set_ylabel('צפיפות')
+    ax.legend()
+    
+    st.pyplot(fig)
 
 def show():
     set_rtl()
