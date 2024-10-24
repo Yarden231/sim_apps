@@ -440,6 +440,7 @@ def plot_likelihood(samples, distribution):
         st.pyplot(fig)
 
 def perform_goodness_of_fit(samples, distribution, params):
+
     """Improved goodness of fit testing with corrected hypothesis testing."""
     
     # Calculate number of bins using Freedman-Diaconis rule
@@ -455,7 +456,7 @@ def perform_goodness_of_fit(samples, distribution, params):
     if distribution == 'Normal':
         mu, sigma = params
         expected_probs = stats.norm.cdf(bins[1:], mu, sigma) - stats.norm.cdf(bins[:-1], mu, sigma)
-        dof = len(observed_freq) - 3
+        dof = len(observed_freq) - 3  # subtracting parameters estimated + 1
         theoretical_dist = stats.norm(mu, sigma)
         
     elif distribution == 'Exponential':
@@ -473,70 +474,64 @@ def perform_goodness_of_fit(samples, distribution, params):
     expected_freq = expected_probs * len(samples)
     
     # Combine bins with expected frequency < 5
-    mask = expected_freq >= 5
-    if not all(mask):
-        combined_obs = []
-        combined_exp = []
-        current_obs = 0
-        current_exp = 0
-        
-        for obs, exp in zip(observed_freq, expected_freq):
-            if exp < 5 or current_exp + exp < 5:
-                current_obs += obs
-                current_exp += exp
-            else:
-                if current_obs > 0:
-                    combined_obs.append(current_obs)
-                    combined_exp.append(current_exp)
-                combined_obs.append(obs)
-                combined_exp.append(exp)
-                current_obs = 0
-                current_exp = 0
-        
-        if current_obs > 0:
-            combined_obs.append(current_obs)
-            combined_exp.append(current_exp)
-        
-        observed_freq = np.array(combined_obs)
-        expected_freq = np.array(combined_exp)
-        dof = len(observed_freq) - 1 - (3 if distribution == 'Normal' else 2)
+    while np.any(expected_freq < 5) and len(expected_freq) > 2:
+        min_idx = np.argmin(expected_freq)
+        if min_idx == 0:  # First bin
+            observed_freq[0:2] = np.sum(observed_freq[0:2])
+            expected_freq[0:2] = np.sum(expected_freq[0:2])
+            observed_freq = np.delete(observed_freq, 1)
+            expected_freq = np.delete(expected_freq, 1)
+        elif min_idx == len(expected_freq) - 1:  # Last bin
+            observed_freq[-2:] = np.sum(observed_freq[-2:])
+            expected_freq[-2:] = np.sum(expected_freq[-2:])
+            observed_freq = np.delete(observed_freq, -1)
+            expected_freq = np.delete(expected_freq, -1)
+        else:  # Middle bin
+            observed_freq[min_idx:min_idx+2] = np.sum(observed_freq[min_idx:min_idx+2])
+            expected_freq[min_idx:min_idx+2] = np.sum(expected_freq[min_idx:min_idx+2])
+            observed_freq = np.delete(observed_freq, min_idx+1)
+            expected_freq = np.delete(expected_freq, min_idx+1)
     
     # Perform Chi-Square test
     chi_square_stat = np.sum((observed_freq - expected_freq) ** 2 / expected_freq)
-    p_value_chi = 1 - stats.chi2.cdf(chi_square_stat, max(1, dof))  # Ensure dof is at least 1
+    p_value_chi = 1 - stats.chi2.cdf(chi_square_stat, max(1, dof))
     
-    # Perform modified KS test
-    # Scale the data to be between 0 and 1 for better KS test performance
-    scaled_samples = (samples - np.min(samples)) / (np.max(samples) - np.min(samples))
-    theoretical_samples = theoretical_dist.rvs(size=10000)
-    theoretical_samples = (theoretical_samples - np.min(theoretical_samples)) / (np.max(theoretical_samples) - np.min(theoretical_samples))
-    
-    ks_stat, p_value_ks = stats.ks_2samp(scaled_samples, theoretical_samples)
+    # Perform Kolmogorov-Smirnov test
+    if distribution == 'Normal':
+        ks_stat, p_value_ks = stats.kstest(stats.zscore(samples), 'norm')
+    elif distribution == 'Exponential':
+        # Scale the data to standard exponential
+        scaled_samples = samples * lambda_param
+        ks_stat, p_value_ks = stats.kstest(scaled_samples, 'expon')
+    elif distribution == 'Uniform':
+        # Scale the data to standard uniform
+        scaled_samples = (samples - a) / (b - a)
+        ks_stat, p_value_ks = stats.kstest(scaled_samples, 'uniform')
     
     # Display results
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown(f"""
-            <div class="info-box">
-                <h4>Chi-Square Test:</h4>
-                <ul>
-                    <li>Statistic: {chi_square_stat:.4f}</li>
-                    <li>Degrees of freedom: {dof}</li>
-                    <li>p-value: {p_value_chi:.4f}</li>
-                    <li>Conclusion: {"Reject H0" if p_value_chi < 0.05 else "Fail to reject H0"}</li>
+            <div class="info-box" style="background-color: #fff0f5; padding: 15px; border-radius: 5px;">
+                <h4>Kolmogorov-Smirnov Test:</h4>
+                <ul style="list-style-type: none; padding-left: 0;">
+                    <li>Statistic: {ks_stat:.4f}</li>
+                    <li>p-value: {p_value_ks:.4f}</li>
+                    <li>Conclusion: {"Reject H0" if p_value_ks < 0.05 else "Fail to reject H0"}</li>
                 </ul>
             </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown(f"""
-            <div class="info-box">
-                <h4>Kolmogorov-Smirnov Test:</h4>
-                <ul>
-                    <li>Statistic: {ks_stat:.4f}</li>
-                    <li>p-value: {p_value_ks:.4f}</li>
-                    <li>Conclusion: {"Reject H0" if p_value_ks < 0.05 else "Fail to reject H0"}</li>
+            <div class="info-box" style="background-color: #fff0f5; padding: 15px; border-radius: 5px;">
+                <h4>Chi-Square Test:</h4>
+                <ul style="list-style-type: none; padding-left: 0;">
+                    <li>Statistic: {chi_square_stat:.4f}</li>
+                    <li>Degrees of freedom: {dof}</li>
+                    <li>p-value: {p_value_chi:.4f}</li>
+                    <li>Conclusion: {"Reject H0" if p_value_chi < 0.05 else "Fail to reject H0"}</li>
                 </ul>
             </div>
         """, unsafe_allow_html=True)
