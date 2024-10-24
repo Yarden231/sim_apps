@@ -212,7 +212,7 @@ def show():
         visualize_samples_and_qqplots(st.session_state.samples)
 
         # Step 2: User selects the distribution they believe the samples come from
-        st.subheader("בחר את ההתפלגות שלדעתך הדגימות")
+        st.subheader("בחר את ההתפלגות שלדעתך ממנה הגיעו הדגימות")
 
         # Three buttons for user to select the distribution
         if st.button("Normal Distribution"):
