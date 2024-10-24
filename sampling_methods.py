@@ -6,55 +6,46 @@ from utils import set_rtl
 from utils import set_ltr_sliders
 import time
 from styles import get_custom_css
+
 # Call the set_rtl function to apply RTL styles
 set_rtl()
 
-def sample_uniform(a, b, size):
-    return np.random.uniform(a, b, size)
+def sample_normal(mu, sigma, size):
+    """Sample from normal distribution"""
+    samples = np.random.normal(mu, sigma, size)
+    return np.clip(samples, 2, 15)  # Clip to realistic food prep times
 
 def sample_exponential(lambda_param, size):
-    return np.random.exponential(1/lambda_param, size)
+    """Sample from exponential distribution"""
+    samples = np.random.exponential(1/lambda_param, size)
+    return np.clip(samples, 2, 15)  # Clip to realistic food prep times
 
-def sample_normal(mu, sigma, size):
-    return np.random.normal(mu, sigma, size)
-
-def sample_composite_distribution(size):
-    normal_1 = np.random.normal(0, 1, size)
-    normal_2 = np.random.normal(3, 1, size)
-    mask = np.random.rand(size) < 0.2
-    return np.where(mask, normal_1, normal_2)
-
-def sample_acceptance_rejection(size):
-    samples = []
-    while len(samples) < size:
-        x = np.random.random()
-        y = np.random.random() * 3
-        if y <= f(x):
-            samples.append(x)
-    return np.array(samples)
-
-def f(x):
-    return 3 * x ** 2
+def sample_composite(size):
+    """Sample from mixture of two normal distributions"""
+    n_simple = int(0.2 * size)
+    n_complex = size - n_simple
+    
+    simple_orders = np.random.normal(5, 1, n_simple)
+    complex_orders = np.random.normal(10, 1.5, n_complex)
+    
+    all_orders = np.concatenate([simple_orders, complex_orders])
+    return np.clip(all_orders, 2, 15)
 
 def plot_histogram(samples, title, distribution_func=None, true_density=None):
     """Plot histogram with better styling."""
     fig, ax = plt.subplots(figsize=(8, 5))
     
-    # Plot histogram
     bins = np.linspace(min(samples), max(samples), 30)
     ax.hist(samples, bins=bins, density=True, alpha=0.7, color='pink', label='Sampled Data')
     
-    # Plot true density if provided
     if true_density:
         x = np.linspace(min(samples), max(samples), 100)
         ax.plot(x, true_density(x), 'darkred', linewidth=2, label='True Density')
-    
-    # Plot target distribution if provided
+
     if distribution_func:
         x = np.linspace(0, 1, 100)
         ax.plot(x, distribution_func(x), 'darkred', linewidth=2, linestyle='--', label='Target Distribution')
 
-    # Styling
     ax.set_title(title)
     ax.set_xlabel("Time (minutes)")
     ax.set_ylabel("Density")
@@ -67,15 +58,12 @@ def plot_qqplot(samples, title):
     """Plot QQ plot with better styling."""
     fig, ax = plt.subplots(figsize=(8, 5))
     
-    # Create QQ plot
     stats.probplot(samples, dist="norm", plot=ax)
     
-    # Update colors
     ax.get_lines()[0].set_markerfacecolor('pink')
     ax.get_lines()[0].set_markeredgecolor('darkred')
     ax.get_lines()[1].set_color('darkred')
     
-    # Styling
     ax.set_title(f"{title}\nQ-Q Plot")
     ax.grid(True, alpha=0.3)
     
@@ -86,45 +74,44 @@ def display_statistics(samples):
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("""
+        st.markdown(f"""
             <div class="info-box rtl-content">
                 <h4>מדדי מרכז:</h4>
                 <ul style="list-style-type: none; padding-left: 0;">
-                    <li>ממוצע: {:.2f} דקות</li>
-                    <li>חציון: {:.2f} דקות</li>
+                    <li>ממוצע: {np.mean(samples):.2f} דקות</li>
+                    <li>חציון: {np.median(samples):.2f} דקות</li>
                 </ul>
             </div>
-        """.format(
-            np.mean(samples),
-            np.median(samples)
-        ), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("""
+        st.markdown(f"""
             <div class="info-box rtl-content">
                 <h4>מדדי פיזור:</h4>
                 <ul style="list-style-type: none; padding-left: 0;">
-                    <li>סטיית תקן: {:.2f} דקות</li>
-                    <li>טווח: {:.2f} - {:.2f} דקות</li>
+                    <li>סטיית תקן: {np.std(samples):.2f} דקות</li>
+                    <li>טווח: {np.min(samples):.2f} - {np.max(samples):.2f} דקות</li>
                 </ul>
             </div>
-        """.format(
-            np.std(samples),
-            np.min(samples),
-            np.max(samples)
-        ), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
-def run_sampling(sampling_function, num_samples, update_interval, title, progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples, distribution_func=None, true_density=None):
+def run_sampling(sampling_function, num_samples, update_interval, title, progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=False, distribution_func=None, true_density=None):
+    """Run sampling with visualization updates"""
     # Generate all samples at once
     all_samples = sampling_function(num_samples)
     
-    # Simulate real-time updates by splitting samples into batches
+    # Calculate number of iterations
+    num_iterations = (num_samples + update_interval - 1) // update_interval
+    
+    # Process samples in batches
     samples = []
-    for i in range(0, num_samples, update_interval):
-        batch_samples = all_samples[i:i+update_interval]
+    for i in range(num_iterations):
+        start_idx = i * update_interval
+        end_idx = min(start_idx + update_interval, num_samples)
+        
+        batch_samples = all_samples[start_idx:end_idx]
         samples.extend(batch_samples)
         
-        # Update histograms and QQ plots side by side
         with plot_placeholder.container():
             col1, col2 = st.columns(2)
             with col1:
@@ -136,200 +123,21 @@ def run_sampling(sampling_function, num_samples, update_interval, title, progres
                 st.pyplot(qqplot_fig)
                 plt.close(qqplot_fig)
 
-        # Update statistics
         stats_placeholder.empty()
         with stats_placeholder:
             display_statistics(samples)
         
-        # Print sample values
         if print_samples:
             st.write(f"**Sample values (first {min(10, len(samples))} values):** {samples[:10]}")
         
-        # Simulate progress in real-time
-        progress_bar.progress((i + update_interval) / num_samples)
-        
-        # Delay to simulate real-time sampling (optional)
-        #time.sleep(0.01)
-
-
-
-    st.markdown("""
-        <div class="custom-header rtl-content">
-            <h1>שיטות דגימה לסימולציית זמני שירות 🚚</h1>
-            <p>לאחר שזיהינו את ההתפלגות המתאימה לזמני השירות, נלמד כיצד לייצר דגימות מההתפלגות</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Normal Distribution Explanation
-    st.markdown("""
-        <div class="custom-card rtl-content">
-            <h3 class="section-header">התפלגות נורמלית (גאוסיאנית)</h3>
-            <p>
-                ההתפלגות הנורמלית מתאימה למצבים בהם רוב הערכים מתרכזים סביב הממוצע.
-                במשאית המזון, זה מתאים למנות עם זמן הכנה צפוי וסטיות קטנות יחסית.
-            </p>
-            <ul>
-                <li>μ (mu) - הממוצע: מייצג את זמן ההכנה הטיפוסי</li>
-                <li>σ (sigma) - סטיית התקן: מייצג את מידת הפיזור סביב הממוצע</li>
-            </ul>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""```python
-    # דגימה מהתפלגות נורמלית
-    def sample_normal(mu, sigma, size):
-        return np.random.normal(mu, sigma, size)
-
-    # דוגמה: דגימת זמני הכנה עם ממוצע 8 דקות וסטיית תקן 1 דקה
-    samples = np.random.normal(mu=8, sigma=1, size=1000)
-    ```""")
-
-    # Exponential Distribution Explanation
-    st.markdown("""
-        <div class="custom-card rtl-content">
-            <h3 class="section-header">התפלגות מעריכית</h3>
-            <p>
-                ההתפלגות המעריכית מתאימה לתיאור זמני המתנה בין אירועים אקראיים,
-                או במקרה שלנו - כשיש הרבה זמני הכנה קצרים ומעט זמנים ארוכים.
-            </p>
-            <ul>
-                <li>λ (lambda) - פרמטר הקצב: ככל שהוא גדול יותר, זמני ההכנה קצרים יותר</li>
-                <li>הממוצע של ההתפלגות הוא 1/λ</li>
-            </ul>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""```python
-    # דגימה מהתפלגות מעריכית
-    def sample_exponential(lambda_param, size):
-        return np.random.exponential(scale=1/lambda_param, size=size)
-
-    # דוגמה: דגימת זמני הכנה עם ממוצע 5 דקות (λ = 0.2)
-    samples = np.random.exponential(scale=5, size=1000)
-    ```""")
-
-    # Composite Distribution Explanation
-    st.markdown("""
-        <div class="custom-card rtl-content">
-            <h3 class="section-header">התפלגות מורכבת (Mixture Distribution)</h3>
-            <p>
-                התפלגות מורכבת משלבת מספר התפלגויות שונות. במשאית המזון, זה שימושי כאשר:
-            </p>
-            <ul>
-                <li>יש מספר סוגי מנות עם זמני הכנה שונים</li>
-                <li>חלק מהמנות פשוטות (זמן קצר) וחלק מורכבות (זמן ארוך)</li>
-                <li>יש עומס משתנה בשעות שונות</li>
-            </ul>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""```python
-    # דגימה מהתפלגות מורכבת
-    def sample_composite(size):
-        # 20% מנות פשוטות (ממוצע 5 דקות)
-        # 80% מנות מורכבות (ממוצע 10 דקות)
-        n_simple = int(0.2 * size)
-        n_complex = size - n_simple
-        
-        # דגימת זמני הכנה למנות פשוטות ומורכבות
-        simple_orders = np.random.normal(5, 1, n_simple)
-        complex_orders = np.random.normal(10, 1.5, n_complex)
-        
-        # שילוב הדגימות
-        all_orders = np.concatenate([simple_orders, complex_orders])
-        
-        # וידוא שכל הזמנים חיוביים והגיוניים
-        return np.clip(all_orders, 2, 15)
-
-    # דוגמה: דגימת 1000 זמני הכנה
-    samples = sample_composite(1000)
-    ```""")
-
-    # Advanced Example: Data-Driven Distribution
-    st.markdown("""
-        <div class="custom-card rtl-content">
-            <h3 class="section-header">דגימה מבוססת נתונים אמיתיים</h3>
-            <p>
-                לפעמים אנחנו רוצים לדגום מהתפלגות שמבוססת על נתונים אמיתיים שאספנו.
-                נוכל להשתמש בשיטת Kernel Density Estimation (KDE) או בדגימה עם החזרה.
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""```python
-    from scipy import stats
-
-    def sample_from_data(real_data, size):
-        # גישה 1: שימוש ב-KDE
-        kde = stats.gaussian_kde(real_data)
-        samples_kde = kde.resample(size=size)[0]
-        
-        # גישה 2: דגימה עם החזרה
-        samples_resample = np.random.choice(real_data, size=size, replace=True)
-        
-        return samples_kde, samples_resample
-
-    # דוגמה לשימוש:
-    real_service_times = np.array([...])  # נתונים אמיתיים שנאספו
-    kde_samples, resampled = sample_from_data(real_service_times, 1000)
-    ```""")
-
-    # Tips and Best Practices
-    st.markdown("""
-        <div class="info-box rtl-content">
-            <h4>טיפים לדגימה נכונה:</h4>
-            <ul>
-                <li>תמיד בדקו שהדגימות הגיוניות (למשל, לא יתכנו זמני הכנה שליליים)</li>
-                <li>השתמשו ב-np.clip() כדי להגביל את הטווח לערכים הגיוניים</li>
-                <li>הוסיפו אקראיות מבוקרת כדי לדמות שונות בזמני ההכנה</li>
-                <li>תעדו את הפרמטרים ששימשו לדגימה לצורך שחזור התוצאות</li>
-            </ul>
-            
-            <h4>קוד עזר שימושי:</h4>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""```python
-    # פונקציות עזר שימושיות
-
-    def clip_and_validate_times(samples, min_time=2, max_time=15):
-        """וידוא שזמני ההכנה הגיוניים"""
-        clipped = np.clip(samples, min_time, max_time)
-        return clipped
-
-    def add_random_variation(samples, variation_percent=10):
-        """הוספת שונות אקראית לזמני ההכנה"""
-        variation = samples * (variation_percent/100) * np.random.uniform(-1, 1, len(samples))
-        return samples + variation
-
-    def generate_service_times(distribution_type, size, **params):
-        """פונקציה מרכזית לדגימת זמני שירות"""
-        if distribution_type == 'normal':
-            samples = np.random.normal(params['mu'], params['sigma'], size)
-        elif distribution_type == 'exponential':
-            samples = np.random.exponential(1/params['lambda'], size)
-        elif distribution_type == 'composite':
-            samples = sample_composite(size)
-        
-        # וידוא זמנים הגיוניים והוספת שונות
-        samples = clip_and_validate_times(samples)
-        samples = add_random_variation(samples)
-        
-        return samples
-
-    # דוגמה לשימוש:
-    service_times = generate_service_times(
-        distribution_type='normal',
-        size=1000,
-        mu=8,
-        sigma=1
-    )
-    ```""")
-
-    return st.session_state.selected_sampling
+        progress = min(1.0, end_idx / num_samples)
+        progress_bar.progress(progress)
 
 def show_sampling_methods():
+    """Main function to display sampling methods demonstration"""
     st.markdown(get_custom_css(), unsafe_allow_html=True)
+    
+    # Header
     st.markdown("""
         <div class="custom-header rtl-content">
             <h1>שיטות דגימה לסימולציית זמני שירות 🚚</h1>
@@ -337,176 +145,176 @@ def show_sampling_methods():
         </div>
     """, unsafe_allow_html=True)
 
-    # Normal Distribution Explanation
+    # Sample size and update interval selection
+    col1, col2 = st.columns(2)
+    with col1:
+        num_samples = st.slider("מספר דגימות", min_value=1000, max_value=10000, value=1000, step=1000)
+    with col2:
+        update_interval = st.slider("תדירות עדכון", 100, 1000, 100)
+
+    # Distribution selection
     st.markdown("""
         <div class="custom-card rtl-content">
-            <h3 class="section-header">התפלגות נורמלית (גאוסיאנית)</h3>
-            <p>
-                ההתפלגות הנורמלית מתאימה למצבים בהם רוב הערכים מתרכזים סביב הממוצע.
-                במשאית המזון, זה מתאים למנות עם זמן הכנה צפוי וסטיות קטנות יחסית.
-            </p>
-            <ul>
-                <li>μ (mu) - הממוצע: מייצג את זמן ההכנה הטיפוסי</li>
-                <li>σ (sigma) - סטיית התקן: מייצג את מידת הפיזור סביב הממוצע</li>
-            </ul>
+            <h3 class="section-header">בחירת התפלגות</h3>
+            <p>בחר את סוג ההתפלגות שברצונך לבחון:</p>
         </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("""```python
-    # דגימה מהתפלגות נורמלית
-    def sample_normal(mu, sigma, size):
-        return np.random.normal(mu, sigma, size)
+    # Initialize session state
+    if 'selected_sampling' not in st.session_state:
+        st.session_state.selected_sampling = None
 
-    # דוגמה: דגימת זמני הכנה עם ממוצע 8 דקות וסטיית תקן 1 דקה
-    samples = np.random.normal(mu=8, sigma=1, size=1000)
-    ```""")
+    # Distribution selection buttons
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("התפלגות נורמלית", help="מתאים למנות סטנדרטיות"):
+            st.session_state.selected_sampling = 'normal'
+    with col2:
+        if st.button("התפלגות מעריכית", help="מתאים להזמנות מהירות"):
+            st.session_state.selected_sampling = 'exponential'
+    with col3:
+        if st.button("התפלגות מורכבת", help="מתאים למגוון סוגי מנות"):
+            st.session_state.selected_sampling = 'composite'
 
-    # Exponential Distribution Explanation
+    # Display selected distribution content
+    if st.session_state.selected_sampling == 'normal':
+        st.markdown("""
+            <div class="custom-card rtl-content">
+                <h3>התפלגות נורמלית - זמני הכנה למנה סטנדרטית</h3>
+                <p>התפלגות זו מתאימה למנות עם זמן הכנה קבוע יחסית.</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        mu = st.slider("זמן הכנה ממוצע (μ)", 5.0, 15.0, 8.0)
+        sigma = st.slider("שונות בזמני ההכנה (σ)", 0.5, 3.0, 1.0)
+        
+        progress_bar = st.progress(0)
+        plot_placeholder = st.empty()
+        qqplot_placeholder = st.empty()
+        stats_placeholder = st.empty()
+        
+        true_density = lambda x: stats.norm.pdf(x, mu, sigma)
+        run_sampling(
+            lambda size: sample_normal(mu, sigma, size),
+            num_samples,
+            update_interval,
+            "Normal Distribution",
+            progress_bar,
+            plot_placeholder,
+            qqplot_placeholder,
+            stats_placeholder,
+            true_density=true_density
+        )
+
+    elif st.session_state.selected_sampling == 'exponential':
+        st.markdown("""
+            <div class="custom-card rtl-content">
+                <h3>התפלגות מעריכית - זמני הכנה למנות מהירות</h3>
+                <p>התפלגות זו מתאימה למנות שבדרך כלל מוכנות מהר.</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        lambda_param = st.slider("קצב הכנה (λ)", 0.1, 1.0, 0.5)
+        
+        progress_bar = st.progress(0)
+        plot_placeholder = st.empty()
+        qqplot_placeholder = st.empty()
+        stats_placeholder = st.empty()
+        
+        true_density = lambda x: lambda_param * np.exp(-lambda_param * x)
+        run_sampling(
+            lambda size: sample_exponential(lambda_param, size),
+            num_samples,
+            update_interval,
+            "Exponential Distribution",
+            progress_bar,
+            plot_placeholder,
+            qqplot_placeholder,
+            stats_placeholder,
+            true_density=true_density
+        )
+
+    elif st.session_state.selected_sampling == 'composite':
+        st.markdown("""
+            <div class="custom-card rtl-content">
+                <h3>התפלגות מורכבת - זמני הכנה למגוון מנות</h3>
+                <p>התפלגות זו מתאימה כאשר יש שני סוגי מנות עיקריים.</p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        progress_bar = st.progress(0)
+        plot_placeholder = st.empty()
+        qqplot_placeholder = st.empty()
+        stats_placeholder = st.empty()
+        
+        true_density = lambda x: 0.2 * stats.norm.pdf(x, 5, 1) + 0.8 * stats.norm.pdf(x, 10, 1.5)
+        run_sampling(
+            sample_composite,
+            num_samples,
+            update_interval,
+            "Composite Distribution",
+            progress_bar,
+            plot_placeholder,
+            qqplot_placeholder,
+            stats_placeholder,
+            true_density=true_density
+        )
+
+    # Display code implementation
+    if st.session_state.selected_sampling:
+        show_implementation()
+
+def show_implementation():
+    """Display code implementations"""
     st.markdown("""
         <div class="custom-card rtl-content">
-            <h3 class="section-header">התפלגות מעריכית</h3>
-            <p>
-                ההתפלגות המעריכית מתאימה לתיאור זמני המתנה בין אירועים אקראיים,
-                או במקרה שלנו - כשיש הרבה זמני הכנה קצרים ומעט זמנים ארוכים.
-            </p>
-            <ul>
-                <li>λ (lambda) - פרמטר הקצב: ככל שהוא גדול יותר, זמני ההכנה קצרים יותר</li>
-                <li>הממוצע של ההתפלגות הוא 1/λ</li>
-            </ul>
+            <h3>מימוש בקוד</h3>
+            <p>להלן המימוש של פונקציות הדגימה ב-Python:</p>
         </div>
     """, unsafe_allow_html=True)
+    
+    with st.expander("הצג קוד מימוש"):
+        if st.session_state.selected_sampling == 'normal':
+            st.code("""
+# דגימה מהתפלגות נורמלית
+def sample_normal(mu, sigma, size):
+    samples = np.random.normal(mu, sigma, size)
+    return np.clip(samples, 2, 15)  # הגבלת זמנים לטווח הגיוני
 
-    st.markdown("""```python
-    # דגימה מהתפלגות מעריכית
-    def sample_exponential(lambda_param, size):
-        return np.random.exponential(scale=1/lambda_param, size=size)
-
-    # דוגמה: דגימת זמני הכנה עם ממוצע 5 דקות (λ = 0.2)
-    samples = np.random.exponential(scale=5, size=1000)
-    ```""")
-
-    # Composite Distribution Explanation
-    st.markdown("""
-        <div class="custom-card rtl-content">
-            <h3 class="section-header">התפלגות מורכבת (Mixture Distribution)</h3>
-            <p>
-                התפלגות מורכבת משלבת מספר התפלגויות שונות. במשאית המזון, זה שימושי כאשר:
-            </p>
-            <ul>
-                <li>יש מספר סוגי מנות עם זמני הכנה שונים</li>
-                <li>חלק מהמנות פשוטות (זמן קצר) וחלק מורכבות (זמן ארוך)</li>
-                <li>יש עומס משתנה בשעות שונות</li>
-            </ul>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""```python
-    # דגימה מהתפלגות מורכבת
-    def sample_composite(size):
-        # 20% מנות פשוטות (ממוצע 5 דקות)
-        # 80% מנות מורכבות (ממוצע 10 דקות)
-        n_simple = int(0.2 * size)
-        n_complex = size - n_simple
-        
-        # דגימת זמני הכנה למנות פשוטות ומורכבות
-        simple_orders = np.random.normal(5, 1, n_simple)
-        complex_orders = np.random.normal(10, 1.5, n_complex)
-        
-        # שילוב הדגימות
-        all_orders = np.concatenate([simple_orders, complex_orders])
-        
-        # וידוא שכל הזמנים חיוביים והגיוניים
-        return np.clip(all_orders, 2, 15)
-
-    # דוגמה: דגימת 1000 זמני הכנה
-    samples = sample_composite(1000)
-    ```""")
-
-    # Advanced Example: Data-Driven Distribution
-    st.markdown("""
-        <div class="custom-card rtl-content">
-            <h3 class="section-header">דגימה מבוססת נתונים אמיתיים</h3>
-            <p>
-                לפעמים אנחנו רוצים לדגום מהתפלגות שמבוססת על נתונים אמיתיים שאספנו.
-                נוכל להשתמש בשיטת Kernel Density Estimation (KDE) או בדגימה עם החזרה.
-            </p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""```python
-    from scipy import stats
-
-    def sample_from_data(real_data, size):
-        # גישה 1: שימוש ב-KDE
-        kde = stats.gaussian_kde(real_data)
-        samples_kde = kde.resample(size=size)[0]
-        
-        # גישה 2: דגימה עם החזרה
-        samples_resample = np.random.choice(real_data, size=size, replace=True)
-        
-        return samples_kde, samples_resample
-
-    # דוגמה לשימוש:
-    real_service_times = np.array([...])  # נתונים אמיתיים שנאספו
-    kde_samples, resampled = sample_from_data(real_service_times, 1000)
-    ```""")
-
-    # Tips and Best Practices
-    st.markdown("""
-        <div class="info-box rtl-content">
-            <h4>טיפים לדגימה נכונה:</h4>
-            <ul>
-                <li>תמיד בדקו שהדגימות הגיוניות (למשל, לא יתכנו זמני הכנה שליליים)</li>
-                <li>השתמשו ב-np.clip() כדי להגביל את הטווח לערכים הגיוניים</li>
-                <li>הוסיפו אקראיות מבוקרת כדי לדמות שונות בזמני ההכנה</li>
-                <li>תעדו את הפרמטרים ששימשו לדגימה לצורך שחזור התוצאות</li>
-            </ul>
+# דוגמת שימוש
+samples = sample_normal(mu=8, sigma=1, size=1000)
+            """, language='python')
             
-            <h4>קוד עזר שימושי:</h4>
-        </div>
-    """, unsafe_allow_html=True)
+        elif st.session_state.selected_sampling == 'exponential':
+            st.code("""
+# דגימה מהתפלגות מעריכית
+def sample_exponential(lambda_param, size):
+    samples = np.random.exponential(1/lambda_param, size)
+    return np.clip(samples, 2, 15)  # הגבלת זמנים לטווח הגיוני
 
-    st.markdown("""```python
-    # פונקציות עזר שימושיות
+# דוגמת שימוש
+samples = sample_exponential(lambda_param=0.2, size=1000)
+            """, language='python')
+            
+        elif st.session_state.selected_sampling == 'composite':
+            st.code("""
+# דגימה מהתפלגות מורכבת
+def sample_composite(size):
+    # חלוקה ל-20% מנות פשוטות ו-80% מנות מורכבות
+    n_simple = int(0.2 * size)
+    n_complex = size - n_simple
+    
+    # דגימת זמני הכנה למנות פשוטות ומורכבות
+    simple_orders = np.random.normal(5, 1, n_simple)
+    complex_orders = np.random.normal(10, 1.5, n_complex)
+    
+    # שילוב הדגימות
+    all_orders = np.concatenate([simple_orders, complex_orders])
+    return np.clip(all_orders, 2, 15)  # הגבלת זמנים לטווח הגיוני
 
-    def clip_and_validate_times(samples, min_time=2, max_time=15):
-        """וידוא שזמני ההכנה הגיוניים"""
-        clipped = np.clip(samples, min_time, max_time)
-        return clipped
-
-    def add_random_variation(samples, variation_percent=10):
-        """הוספת שונות אקראית לזמני ההכנה"""
-        variation = samples * (variation_percent/100) * np.random.uniform(-1, 1, len(samples))
-        return samples + variation
-
-    def generate_service_times(distribution_type, size, **params):
-        """פונקציה מרכזית לדגימת זמני שירות"""
-        if distribution_type == 'normal':
-            samples = np.random.normal(params['mu'], params['sigma'], size)
-        elif distribution_type == 'exponential':
-            samples = np.random.exponential(1/params['lambda'], size)
-        elif distribution_type == 'composite':
-            samples = sample_composite(size)
-        
-        # וידוא זמנים הגיוניים והוספת שונות
-        samples = clip_and_validate_times(samples)
-        samples = add_random_variation(samples)
-        
-        return samples
-
-    # דוגמה לשימוש:
-    service_times = generate_service_times(
-        distribution_type='normal',
-        size=1000,
-        mu=8,
-        sigma=1
-    )
-    ```""")
-
-    return st.session_state.selected_sampling
+# דוגמת שימוש
+samples = sample_composite(size=1000)
+            """, language='python')
 
 if __name__ == "__main__":
-    set_rtl()
-    set_ltr_sliders()
     show_sampling_methods()
-
