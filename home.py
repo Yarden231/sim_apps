@@ -15,7 +15,7 @@ def show():
     )
 
     # Example course simulation section
-    st.header("דוגמת הקורס: The Busy Food Truck")
+    st.header("# The Busy Food Truck")
     st.write("""
     ###### ברוכים הבאים לאפליקציה המדמה את הפעילות של משאית אוכל עמוסה ומבוקשת! 
     ###### מערכת השירות של משאית המזון כוללת שלושה עמדות שירות:
