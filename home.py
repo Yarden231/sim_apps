@@ -14,17 +14,8 @@ def show():
         unsafe_allow_html=True
     )
 
-    # Header section
-    st.header("ברוכים הבאים לפלטפורמת קורס סימולציה")
-
-    # Introduction section
-    st.write("""
-    ##### פלטפורמה זו נועדה לסייע לכם ללמוד וליישם מושגי סימולציה באופן אפקטיבי ומעשי.
-    השתמשו בסרגל הצד כדי לנווט בין החלקים השונים של הקורס ולגשת למשאבים מגוונים.
-    """)
-
     # Example course simulation section
-    st.subheader("דוגמת הקורס: The Busy Food Truck")
+    st.header("דוגמת הקורס: The Busy Food Truck")
     st.write("""
     ###### ברוכים הבאים לאפליקציה המדמה את הפעילות של משאית אוכל עמוסה ומבוקשת! 
     ###### מערכת השירות של משאית המזון כוללת שלושה עמדות שירות:
