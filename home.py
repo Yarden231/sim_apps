@@ -1,13 +1,7 @@
+# home.py
 import streamlit as st
 from PIL import Image
 import matplotlib.pyplot as plt
-
-def set_page_config():
-    st.set_page_config(
-        page_title="The Busy Food Truck Simulation",
-        page_icon="🚚",
-        layout="wide"
-    )
 
 def apply_custom_css():
     st.markdown("""
@@ -68,7 +62,6 @@ def apply_custom_css():
     """, unsafe_allow_html=True)
 
 def show():
-    set_page_config()
     apply_custom_css()
     
     # Main title section
@@ -123,3 +116,22 @@ def show():
         </div>
     """, unsafe_allow_html=True)
     
+    # Course objectives section
+    st.markdown("""
+        <div class="card hebrew-text">
+            <h3 class="section-header">מטרות הקורס</h3>
+            <p>מטרת הקורס היא להקנות לסטודנטים את הכלים והידע הדרושים לבניית פרויקטי סימולציה בצורה פשוטה ומעשית.</p>
+            <div style="background-color: #f8f9fa; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
+                <h4>נושאי הקורס העיקריים:</h4>
+                <ul class="custom-list">
+                    <li>🔄 מידול המערכת</li>
+                    <li>📥 יצירת קלט לסימולציה</li>
+                    <li>🚀 הרצת ניסוי</li>
+                    <li>📊 ניתוח פלט ותוצאות</li>
+                </ul>
+            </div>
+            <p style="background-color: #e3f2fd; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                הקורס משלב תאוריה ופרקטיקה עם יישום מעשי בשפת פייתון. בפשטות – הקורס מלמד איך לבצע סימולציה מא' ועד ת'.
+            </p>
+        </div>
+    """, unsafe_allow_html=True)
