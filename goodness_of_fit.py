@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import scipy.stats as stats
 from utils import set_rtl, set_ltr_sliders
-
+import pandas as pd
 
 def generate_random_samples(sample_size):
     """Generate samples from a random distribution with random parameters."""
