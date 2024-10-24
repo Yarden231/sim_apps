@@ -1,11 +1,11 @@
+import streamlit as st
+
 def show():
-    import streamlit as st
-    
-    # Custom CSS to set text color to black
+    # Custom CSS to set text color to black for all elements
     st.markdown(
         """
         <style>
-        body, .css-1v3fvcr, .css-12oz5g7, .css-qbe2hs {
+        html, body, [class*="css"]  {
             color: black !important;
         }
         </style>
@@ -26,11 +26,13 @@ def show():
     st.subheader("מטרות הקורס")
     st.write("""
     מטרת הקורס היא להקנות לסטודנטים את הכלים והידע הדרושים לבניית פרויקטי סימולציה בצורה פשוטה ומעשית, תוך שימוש במחשב לדימוי וניתוח תהליכים מהעולם האמיתי.
+
     הקורס מתמקד בנושאים הבאים:
     - **מידול המערכת**  
     - **יצירת קלט לסימולציה**  
     - **הרצת ניסוי**  
     - **ניתוח פלט ותוצאות**
+
     הקורס משלב תאוריה ופרקטיקה עם יישום מעשי בשפת פייתון. בפשטות – הקורס מלמד איך לבצע סימולציה מא' ועד ת'.
     """)
 
