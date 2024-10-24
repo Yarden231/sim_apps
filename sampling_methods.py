@@ -116,84 +116,160 @@ def run_sampling(sampling_function, num_samples, update_interval, title, progres
         #time.sleep(0.01)
 
 def show_sampling_methods():
-    st.title("הדגמה של שיטות דגימה שונות")
+    st.markdown("""
+        <div class="custom-header rtl-content">
+            <h1>שיטות דגימה לסימולציית זמני שירות 🚚</h1>
+            <p>לאחר שזיהינו את ההתפלגות המתאימה לזמני השירות, נלמד כיצד לייצר דגימות מההתפלגות</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-    st.write("בדף זה נלמד על שיטות דגימה שונות, ונראה דוגמאות כיצד ניתן לייצר דגימות באמצעות Python.")
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">רקע</h3>
+            <p>
+                כדי לבנות סימולציה של משאית המזון, עלינו לדעת כיצד לייצר זמני שירות מלאכותיים שמתנהגים
+                כמו הזמנים האמיתיים. נכיר מספר שיטות דגימה שיעזרו לנו לייצר זמנים אלו:
+            </p>
+            <ul>
+                <li><strong>התפלגות אחידה:</strong> מתאימה למצבים בהם זמן ההכנה הוא אקראי לחלוטין בין מינימום למקסימום</li>
+                <li><strong>התפלגות נורמלית:</strong> מתאימה כאשר זמן ההכנה מתרכז סביב ממוצע עם סטיות סימטריות</li>
+                <li><strong>התפלגות מעריכית:</strong> מתאימה למצבים בהם יש הרבה זמני הכנה קצרים ומעט זמנים ארוכים</li>
+                <li><strong>התפלגות מורכבת:</strong> מתאימה כאשר יש מספר סוגי הזמנות עם זמני הכנה שונים</li>
+                <li><strong>שיטת קבלה-דחייה:</strong> מתאימה כאשר התפלגות זמני ההכנה היא ייחודית</li>
+            </ul>
+        </div>
+    """, unsafe_allow_html=True)
 
+    # Session state initialization
     if 'selected_sampling' not in st.session_state:
         st.session_state.selected_sampling = None
 
-    # Move the slider for sample size inside the main page area
-    st.subheader("בחר מספר דגימות ודגום התפלגות")
-    num_samples = st.slider("מספר דגימות", min_value=1000, max_value=1000000, value=1000, step=1000)
-    update_interval = st.slider("תדירות עדכון (מספר דגימות)", 100, 1000, 100)
+    # Parameters selection
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">הגדרת פרמטרים</h3>
+            <p>בחר את מספר הדגימות ותדירות העדכון:</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-    st.header("בחר שיטת דגימה")
-    set_ltr_sliders() 
-    if st.button("התפלגות אחידה"):
-        st.session_state.selected_sampling = 'uniform'
-    if st.button("התפלגות נורמלית"):
-        st.session_state.selected_sampling = 'normal'
-    if st.button("התפלגות מעריכית"):
-        st.session_state.selected_sampling = 'exponential'
-    if st.button("התפלגות מורכבת"):
-        st.session_state.selected_sampling = 'composite'
-    if st.button("שיטת הקבלה-דחייה"):
-        st.session_state.selected_sampling = 'acceptance_rejection'
+    col1, col2 = st.columns(2)
+    with col1:
+        num_samples = st.slider("מספר דגימות", min_value=1000, max_value=10000, value=1000, step=1000)
+    with col2:
+        update_interval = st.slider("תדירות עדכון", 100, 1000, 100)
 
-    if st.session_state.selected_sampling == 'uniform':
-        st.header("1. התפלגות אחידה")
-        st.latex(r"f(x) = \frac{1}{b-a}, \quad a \leq x \leq b")
-        a = st.slider("ערך מינימלי (a)", 0.0, 1.0, 0.0)
-        b = st.slider("ערך מקסימלי (b)", a + 0.1, 1.0, 1.0)
-        progress_bar = st.progress(0)
-        plot_placeholder = st.empty()
-        qqplot_placeholder = st.empty()
-        stats_placeholder = st.empty()
-        true_density = lambda x: np.ones_like(x) / (b - a)
-        run_sampling(lambda size: sample_uniform(a, b, size), num_samples, update_interval, "Uniform Distribution", progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
+    # Distribution selection
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">בחירת התפלגות</h3>
+            <p>בחר את סוג ההתפלגות שברצונך לבחון:</p>
+        </div>
+    """, unsafe_allow_html=True)
 
-    elif st.session_state.selected_sampling == 'normal':
-        st.header("2. התפלגות נורמלית")
-        st.latex(r"f(x) = \frac{1}{\sigma \sqrt{2\pi}} e^{-\frac{(x - \mu)^2}{2\sigma^2}}")
-        mu = st.slider("ממוצע (μ)", -10.0, 10.0, 0.0)
-        sigma = st.slider("סטיית תקן (σ)", 0.1, 5.0, 1.0)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("התפלגות נורמלית", help="מתאים למנות סטנדרטיות"):
+            st.session_state.selected_sampling = 'normal'
+    with col2:
+        if st.button("התפלגות מעריכית", help="מתאים להזמנות מהירות"):
+            st.session_state.selected_sampling = 'exponential'
+    with col3:
+        if st.button("התפלגות מורכבת", help="מתאים למגוון סוגי מנות"):
+            st.session_state.selected_sampling = 'composite'
+
+    # Distribution specific interfaces
+    if st.session_state.selected_sampling == 'normal':
+        st.markdown("""
+            <div class="custom-card rtl-content">
+                <h3>התפלגות נורמלית - זמני הכנה למנה סטנדרטית</h3>
+                <p>
+                    התפלגות זו מתאימה למנות עם זמן הכנה קבוע יחסית. 
+                    הממוצע (μ) מייצג את זמן ההכנה הטיפוסי, וסטיית התקן (σ) מייצגת את מידת השונות בזמנים.
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            mu = st.slider("זמן הכנה ממוצע (μ)", 5.0, 15.0, 8.0)
+        with col2:
+            sigma = st.slider("שונות בזמני ההכנה (σ)", 0.5, 3.0, 1.0)
+        
         progress_bar = st.progress(0)
         plot_placeholder = st.empty()
         qqplot_placeholder = st.empty()
         stats_placeholder = st.empty()
         true_density = lambda x: stats.norm.pdf(x, mu, sigma)
-        run_sampling(lambda size: sample_normal(mu, sigma, size), num_samples, update_interval, "Normal Distribution", progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
+        run_sampling(lambda size: sample_normal(mu, sigma, size), num_samples, update_interval, 
+                    "התפלגות זמני הכנה למנה סטנדרטית", progress_bar, plot_placeholder, 
+                    qqplot_placeholder, stats_placeholder, print_samples=False, true_density=true_density)
 
     elif st.session_state.selected_sampling == 'exponential':
-        st.header("3. התפלגות מעריכית")
-        st.latex(r"f(x) = \lambda e^{-\lambda x}, \quad x \geq 0")
-        lambda_param = st.slider("פרמטר למבדא", 0.1, 5.0, 1.0)
+        st.markdown("""
+            <div class="custom-card rtl-content">
+                <h3>התפלגות מעריכית - זמני הכנה למנות מהירות</h3>
+                <p>
+                    התפלגות זו מתאימה למנות שבדרך כלל מוכנות מהר, אך לעתים לוקחות זמן רב יותר.
+                    הפרמטר λ קובע את הקצב הממוצע - ככל שהוא גדול יותר, זמני ההכנה קצרים יותר.
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+        
+        lambda_param = st.slider("קצב הכנה (λ)", 0.1, 1.0, 0.5, 
+                               help="ערך גבוה יותר = זמני הכנה קצרים יותר בממוצע")
+        
         progress_bar = st.progress(0)
         plot_placeholder = st.empty()
         qqplot_placeholder = st.empty()
         stats_placeholder = st.empty()
         true_density = lambda x: lambda_param * np.exp(-lambda_param * x)
-        run_sampling(lambda size: sample_exponential(lambda_param, size), num_samples, update_interval, "Exponential Distribution", progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
+        run_sampling(lambda size: sample_exponential(lambda_param, size), num_samples, update_interval,
+                    "התפלגות זמני הכנה למנות מהירות", progress_bar, plot_placeholder,
+                    qqplot_placeholder, stats_placeholder, print_samples=False, true_density=true_density)
 
     elif st.session_state.selected_sampling == 'composite':
-        st.header("4. התפלגות מורכבת")
-        st.latex(r"f(x) = 0.2 \cdot N(0, 1) + 0.8 \cdot N(3, 1)")
+        st.markdown("""
+            <div class="custom-card rtl-content">
+                <h3>התפלגות מורכבת - זמני הכנה למגוון מנות</h3>
+                <p>
+                    התפלגות זו מתאימה כאשר יש שני סוגי מנות עיקריים:
+                    מנות פשוטות שמוכנות מהר (כ-20% מההזמנות) ומנות מורכבות שלוקחות יותר זמן (כ-80% מההזמנות).
+                </p>
+            </div>
+        """, unsafe_allow_html=True)
+        
         progress_bar = st.progress(0)
         plot_placeholder = st.empty()
         qqplot_placeholder = st.empty()
         stats_placeholder = st.empty()
-        true_density = lambda x: 0.2 * stats.norm.pdf(x, 0, 1) + 0.8 * stats.norm.pdf(x, 3, 1)
-        run_sampling(lambda size: sample_composite_distribution(size), num_samples, update_interval, "Composite Distribution", progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=True, true_density=true_density)
+        true_density = lambda x: 0.2 * stats.norm.pdf(x, 5, 1) + 0.8 * stats.norm.pdf(x, 10, 1.5)
+        
+        def modified_composite_distribution(size):
+            # Modified to give more realistic food preparation times
+            simple_orders = np.random.normal(5, 1, int(0.2 * size))  # Simple orders: ~5 minutes
+            complex_orders = np.random.normal(10, 1.5, size - len(simple_orders))  # Complex orders: ~10 minutes
+            all_orders = np.concatenate([simple_orders, complex_orders])
+            return np.clip(all_orders, 2, 15)  # Ensure times are between 2 and 15 minutes
+        
+        run_sampling(modified_composite_distribution, num_samples, update_interval,
+                    "התפלגות זמני הכנה למגוון מנות", progress_bar, plot_placeholder,
+                    qqplot_placeholder, stats_placeholder, print_samples=False, true_density=true_density)
 
-    elif st.session_state.selected_sampling == 'acceptance_rejection':
-        st.header("5. שיטת הקבלה-דחייה")
-        st.latex(r"f(x) = 3x^2, \quad 0 \leq x \leq 1")
-        progress_bar = st.progress(0)
-        plot_placeholder = st.empty()
-        qqplot_placeholder = st.empty()
-        stats_placeholder = st.empty()
-        run_sampling(lambda size: sample_acceptance_rejection(size), num_samples, update_interval, "Acceptance-Rejection Method", progress_bar, plot_placeholder, qqplot_placeholder, stats_placeholder, print_samples=True, distribution_func=f)
+    # Add explanation of plots
+    if st.session_state.selected_sampling:
+        st.markdown("""
+            <div class="info-box rtl-content">
+                <h4>הסבר על הגרפים:</h4>
+                <ul>
+                    <li><strong>היסטוגרמה:</strong> מציגה את התפלגות זמני ההכנה שנדגמו. הקו האדום מראה את ההתפלגות התיאורטית.</li>
+                    <li><strong>תרשים Q-Q:</strong> משמש לבדיקת ההתאמה להתפלגות הנבחרת. ככל שהנקודות קרובות יותר לקו, ההתאמה טובה יותר.</li>
+                    <li><strong>סטטיסטיקה תיאורית:</strong> מציגה מדדים סטטיסטיים בסיסיים של זמני ההכנה שנדגמו.</li>
+                </ul>
+            </div>
+        """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
+    set_rtl()
+    set_ltr_sliders()
     show_sampling_methods()
+
