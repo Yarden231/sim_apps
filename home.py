@@ -1,6 +1,18 @@
 import streamlit as st
 
 def show():
+    # Custom CSS to set text color to black
+    st.markdown(
+        """
+        <style>
+        .stMarkdown, .stText, .stHeader, .stSubheader {
+            color: black !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
     # Header section
     st.header("ברוכים הבאים לפלטפורמת קורס סימולציה")
 
@@ -40,3 +52,4 @@ def show():
     st.write("""
     "הדרך הטובה ביותר לחזות את העתיד היא לסמלץ אותו." - לא ידוע
     """)
+
