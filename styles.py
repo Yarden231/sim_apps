@@ -22,7 +22,7 @@ def get_custom_css():
     
     /* Header Styling */
     .custom-header {
-        background: linear-gradient(135deg, #0396FF, #ABDCFF);
+        background: linear-gradient(135deg, #F5C6C3, #F8E0E6); /* Subtle peach-pink gradient */
         padding: 2rem;
         border-radius: 10px;
         margin-bottom: 2rem;
@@ -73,7 +73,7 @@ def get_custom_css():
     /* Section Headers */
     .section-header {
         color: black !important;
-        border-bottom: 2px solid #0396FF;
+        border-bottom: 2px solid #F5C6C3; /* Peach-pink border */
         padding-bottom: 0.5rem;
         margin-bottom: 1rem;
     }
@@ -86,7 +86,7 @@ def get_custom_css():
     
     /* Buttons */
     .stButton > button {
-        background-color: #0396FF;
+        background-color: #F5C6C3; /* Subtle peach-pink */
         color: black !important;
         border: none;
         padding: 0.5rem 1rem;
@@ -106,11 +106,11 @@ def get_custom_css():
     
     /* Info boxes */
     .info-box {
-        background-color: #e3f2fd;
+        background-color: #F8E0E6; /* Light peach */
         padding: 1rem;
         border-radius: 8px;
         margin: 1rem 0;
-        border-right: 4px solid #0396FF;
+        border-right: 4px solid #F5C6C3; /* Peach-pink border */
         color: black !important;
     }
     
@@ -123,7 +123,7 @@ def get_custom_css():
     }
     
     .styled-table th {
-        background-color: #0396FF;
+        background-color: #F5C6C3; /* Subtle peach-pink */
         color: black !important;
         padding: 0.75rem;
         text-align: right;

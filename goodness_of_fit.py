@@ -24,7 +24,6 @@ def generate_random_samples(sample_size):
         samples = np.random.exponential(scale=1/lam, size=sample_size)
         return samples, 'Exponential', (lam,)
     
-# Add this function at the beginning of your file, before the visualize_samples_and_qqplots function
 def display_samples(samples):
     """Display the first few samples and a simple plot of all samples."""
     st.markdown("""
@@ -47,9 +46,9 @@ def display_samples(samples):
         
         # Create a DataFrame with the first 10 samples
         sample_df = pd.DataFrame({
-            'מספר מדידה': range(1, 11),
-            'זמן (דקות)': samples[:10].round(2)
-        }).set_index('מספר מדידה')
+            'Sample #': range(1, 11),
+            'Time (minutes)': samples[:10].round(2)
+        }).set_index('Sample #')
         
         st.dataframe(sample_df, height=300)
 
@@ -57,12 +56,11 @@ def display_samples(samples):
         # Create a simple line plot of all samples
         fig, ax = plt.subplots(figsize=(10, 6))
         plt.plot(samples, marker='o', linestyle='None', alpha=0.5, markersize=3)
-        plt.title('זמני הכנה שנמדדו')
-        plt.xlabel('מספר מדידה')
-        plt.ylabel('זמן (דקות)')
+        plt.title('Service Times')
+        plt.xlabel('Sample Number')
+        plt.ylabel('Time (minutes)')
         plt.grid(True, alpha=0.3)
         st.pyplot(fig)
-
 
 def visualize_samples_and_qqplots(samples):
     """Display histograms and QQ plots of the given samples for three distributions in a grid."""
