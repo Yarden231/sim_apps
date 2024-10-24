@@ -176,13 +176,13 @@ def run_sampling(sampling_function, num_samples, update_interval, title, progres
     """, unsafe_allow_html=True)
 
     st.markdown("""```python
-# דגימה מהתפלגות נורמלית
-def sample_normal(mu, sigma, size):
-    return np.random.normal(mu, sigma, size)
+    # דגימה מהתפלגות נורמלית
+    def sample_normal(mu, sigma, size):
+        return np.random.normal(mu, sigma, size)
 
-# דוגמה: דגימת זמני הכנה עם ממוצע 8 דקות וסטיית תקן 1 דקה
-samples = np.random.normal(mu=8, sigma=1, size=1000)
-```""")
+    # דוגמה: דגימת זמני הכנה עם ממוצע 8 דקות וסטיית תקן 1 דקה
+    samples = np.random.normal(mu=8, sigma=1, size=1000)
+    ```""")
 
     # Exponential Distribution Explanation
     st.markdown("""
@@ -200,13 +200,13 @@ samples = np.random.normal(mu=8, sigma=1, size=1000)
     """, unsafe_allow_html=True)
 
     st.markdown("""```python
-# דגימה מהתפלגות מעריכית
-def sample_exponential(lambda_param, size):
-    return np.random.exponential(scale=1/lambda_param, size=size)
+    # דגימה מהתפלגות מעריכית
+    def sample_exponential(lambda_param, size):
+        return np.random.exponential(scale=1/lambda_param, size=size)
 
-# דוגמה: דגימת זמני הכנה עם ממוצע 5 דקות (λ = 0.2)
-samples = np.random.exponential(scale=5, size=1000)
-```""")
+    # דוגמה: דגימת זמני הכנה עם ממוצע 5 דקות (λ = 0.2)
+    samples = np.random.exponential(scale=5, size=1000)
+    ```""")
 
     # Composite Distribution Explanation
     st.markdown("""
@@ -224,26 +224,26 @@ samples = np.random.exponential(scale=5, size=1000)
     """, unsafe_allow_html=True)
 
     st.markdown("""```python
-# דגימה מהתפלגות מורכבת
-def sample_composite(size):
-    # 20% מנות פשוטות (ממוצע 5 דקות)
-    # 80% מנות מורכבות (ממוצע 10 דקות)
-    n_simple = int(0.2 * size)
-    n_complex = size - n_simple
-    
-    # דגימת זמני הכנה למנות פשוטות ומורכבות
-    simple_orders = np.random.normal(5, 1, n_simple)
-    complex_orders = np.random.normal(10, 1.5, n_complex)
-    
-    # שילוב הדגימות
-    all_orders = np.concatenate([simple_orders, complex_orders])
-    
-    # וידוא שכל הזמנים חיוביים והגיוניים
-    return np.clip(all_orders, 2, 15)
+    # דגימה מהתפלגות מורכבת
+    def sample_composite(size):
+        # 20% מנות פשוטות (ממוצע 5 דקות)
+        # 80% מנות מורכבות (ממוצע 10 דקות)
+        n_simple = int(0.2 * size)
+        n_complex = size - n_simple
+        
+        # דגימת זמני הכנה למנות פשוטות ומורכבות
+        simple_orders = np.random.normal(5, 1, n_simple)
+        complex_orders = np.random.normal(10, 1.5, n_complex)
+        
+        # שילוב הדגימות
+        all_orders = np.concatenate([simple_orders, complex_orders])
+        
+        # וידוא שכל הזמנים חיוביים והגיוניים
+        return np.clip(all_orders, 2, 15)
 
-# דוגמה: דגימת 1000 זמני הכנה
-samples = sample_composite(1000)
-```""")
+    # דוגמה: דגימת 1000 זמני הכנה
+    samples = sample_composite(1000)
+    ```""")
 
     # Advanced Example: Data-Driven Distribution
     st.markdown("""
@@ -257,22 +257,22 @@ samples = sample_composite(1000)
     """, unsafe_allow_html=True)
 
     st.markdown("""```python
-from scipy import stats
+    from scipy import stats
 
-def sample_from_data(real_data, size):
-    # גישה 1: שימוש ב-KDE
-    kde = stats.gaussian_kde(real_data)
-    samples_kde = kde.resample(size=size)[0]
-    
-    # גישה 2: דגימה עם החזרה
-    samples_resample = np.random.choice(real_data, size=size, replace=True)
-    
-    return samples_kde, samples_resample
+    def sample_from_data(real_data, size):
+        # גישה 1: שימוש ב-KDE
+        kde = stats.gaussian_kde(real_data)
+        samples_kde = kde.resample(size=size)[0]
+        
+        # גישה 2: דגימה עם החזרה
+        samples_resample = np.random.choice(real_data, size=size, replace=True)
+        
+        return samples_kde, samples_resample
 
-# דוגמה לשימוש:
-real_service_times = np.array([...])  # נתונים אמיתיים שנאספו
-kde_samples, resampled = sample_from_data(real_service_times, 1000)
-```""")
+    # דוגמה לשימוש:
+    real_service_times = np.array([...])  # נתונים אמיתיים שנאספו
+    kde_samples, resampled = sample_from_data(real_service_times, 1000)
+    ```""")
 
     # Tips and Best Practices
     st.markdown("""
@@ -290,41 +290,41 @@ kde_samples, resampled = sample_from_data(real_service_times, 1000)
     """, unsafe_allow_html=True)
 
     st.markdown("""```python
-# פונקציות עזר שימושיות
+    # פונקציות עזר שימושיות
 
-def clip_and_validate_times(samples, min_time=2, max_time=15):
-    """וידוא שזמני ההכנה הגיוניים"""
-    clipped = np.clip(samples, min_time, max_time)
-    return clipped
+    def clip_and_validate_times(samples, min_time=2, max_time=15):
+        """וידוא שזמני ההכנה הגיוניים"""
+        clipped = np.clip(samples, min_time, max_time)
+        return clipped
 
-def add_random_variation(samples, variation_percent=10):
-    """הוספת שונות אקראית לזמני ההכנה"""
-    variation = samples * (variation_percent/100) * np.random.uniform(-1, 1, len(samples))
-    return samples + variation
+    def add_random_variation(samples, variation_percent=10):
+        """הוספת שונות אקראית לזמני ההכנה"""
+        variation = samples * (variation_percent/100) * np.random.uniform(-1, 1, len(samples))
+        return samples + variation
 
-def generate_service_times(distribution_type, size, **params):
-    """פונקציה מרכזית לדגימת זמני שירות"""
-    if distribution_type == 'normal':
-        samples = np.random.normal(params['mu'], params['sigma'], size)
-    elif distribution_type == 'exponential':
-        samples = np.random.exponential(1/params['lambda'], size)
-    elif distribution_type == 'composite':
-        samples = sample_composite(size)
-    
-    # וידוא זמנים הגיוניים והוספת שונות
-    samples = clip_and_validate_times(samples)
-    samples = add_random_variation(samples)
-    
-    return samples
+    def generate_service_times(distribution_type, size, **params):
+        """פונקציה מרכזית לדגימת זמני שירות"""
+        if distribution_type == 'normal':
+            samples = np.random.normal(params['mu'], params['sigma'], size)
+        elif distribution_type == 'exponential':
+            samples = np.random.exponential(1/params['lambda'], size)
+        elif distribution_type == 'composite':
+            samples = sample_composite(size)
+        
+        # וידוא זמנים הגיוניים והוספת שונות
+        samples = clip_and_validate_times(samples)
+        samples = add_random_variation(samples)
+        
+        return samples
 
-# דוגמה לשימוש:
-service_times = generate_service_times(
-    distribution_type='normal',
-    size=1000,
-    mu=8,
-    sigma=1
-)
-```""")
+    # דוגמה לשימוש:
+    service_times = generate_service_times(
+        distribution_type='normal',
+        size=1000,
+        mu=8,
+        sigma=1
+    )
+    ```""")
 
     return st.session_state.selected_sampling
 
@@ -353,13 +353,13 @@ def show_sampling_methods():
     """, unsafe_allow_html=True)
 
     st.markdown("""```python
-# דגימה מהתפלגות נורמלית
-def sample_normal(mu, sigma, size):
-    return np.random.normal(mu, sigma, size)
+    # דגימה מהתפלגות נורמלית
+    def sample_normal(mu, sigma, size):
+        return np.random.normal(mu, sigma, size)
 
-# דוגמה: דגימת זמני הכנה עם ממוצע 8 דקות וסטיית תקן 1 דקה
-samples = np.random.normal(mu=8, sigma=1, size=1000)
-```""")
+    # דוגמה: דגימת זמני הכנה עם ממוצע 8 דקות וסטיית תקן 1 דקה
+    samples = np.random.normal(mu=8, sigma=1, size=1000)
+    ```""")
 
     # Exponential Distribution Explanation
     st.markdown("""
@@ -377,13 +377,13 @@ samples = np.random.normal(mu=8, sigma=1, size=1000)
     """, unsafe_allow_html=True)
 
     st.markdown("""```python
-# דגימה מהתפלגות מעריכית
-def sample_exponential(lambda_param, size):
-    return np.random.exponential(scale=1/lambda_param, size=size)
+    # דגימה מהתפלגות מעריכית
+    def sample_exponential(lambda_param, size):
+        return np.random.exponential(scale=1/lambda_param, size=size)
 
-# דוגמה: דגימת זמני הכנה עם ממוצע 5 דקות (λ = 0.2)
-samples = np.random.exponential(scale=5, size=1000)
-```""")
+    # דוגמה: דגימת זמני הכנה עם ממוצע 5 דקות (λ = 0.2)
+    samples = np.random.exponential(scale=5, size=1000)
+    ```""")
 
     # Composite Distribution Explanation
     st.markdown("""
@@ -401,26 +401,26 @@ samples = np.random.exponential(scale=5, size=1000)
     """, unsafe_allow_html=True)
 
     st.markdown("""```python
-# דגימה מהתפלגות מורכבת
-def sample_composite(size):
-    # 20% מנות פשוטות (ממוצע 5 דקות)
-    # 80% מנות מורכבות (ממוצע 10 דקות)
-    n_simple = int(0.2 * size)
-    n_complex = size - n_simple
-    
-    # דגימת זמני הכנה למנות פשוטות ומורכבות
-    simple_orders = np.random.normal(5, 1, n_simple)
-    complex_orders = np.random.normal(10, 1.5, n_complex)
-    
-    # שילוב הדגימות
-    all_orders = np.concatenate([simple_orders, complex_orders])
-    
-    # וידוא שכל הזמנים חיוביים והגיוניים
-    return np.clip(all_orders, 2, 15)
+    # דגימה מהתפלגות מורכבת
+    def sample_composite(size):
+        # 20% מנות פשוטות (ממוצע 5 דקות)
+        # 80% מנות מורכבות (ממוצע 10 דקות)
+        n_simple = int(0.2 * size)
+        n_complex = size - n_simple
+        
+        # דגימת זמני הכנה למנות פשוטות ומורכבות
+        simple_orders = np.random.normal(5, 1, n_simple)
+        complex_orders = np.random.normal(10, 1.5, n_complex)
+        
+        # שילוב הדגימות
+        all_orders = np.concatenate([simple_orders, complex_orders])
+        
+        # וידוא שכל הזמנים חיוביים והגיוניים
+        return np.clip(all_orders, 2, 15)
 
-# דוגמה: דגימת 1000 זמני הכנה
-samples = sample_composite(1000)
-```""")
+    # דוגמה: דגימת 1000 זמני הכנה
+    samples = sample_composite(1000)
+    ```""")
 
     # Advanced Example: Data-Driven Distribution
     st.markdown("""
@@ -434,22 +434,22 @@ samples = sample_composite(1000)
     """, unsafe_allow_html=True)
 
     st.markdown("""```python
-from scipy import stats
+    from scipy import stats
 
-def sample_from_data(real_data, size):
-    # גישה 1: שימוש ב-KDE
-    kde = stats.gaussian_kde(real_data)
-    samples_kde = kde.resample(size=size)[0]
-    
-    # גישה 2: דגימה עם החזרה
-    samples_resample = np.random.choice(real_data, size=size, replace=True)
-    
-    return samples_kde, samples_resample
+    def sample_from_data(real_data, size):
+        # גישה 1: שימוש ב-KDE
+        kde = stats.gaussian_kde(real_data)
+        samples_kde = kde.resample(size=size)[0]
+        
+        # גישה 2: דגימה עם החזרה
+        samples_resample = np.random.choice(real_data, size=size, replace=True)
+        
+        return samples_kde, samples_resample
 
-# דוגמה לשימוש:
-real_service_times = np.array([...])  # נתונים אמיתיים שנאספו
-kde_samples, resampled = sample_from_data(real_service_times, 1000)
-```""")
+    # דוגמה לשימוש:
+    real_service_times = np.array([...])  # נתונים אמיתיים שנאספו
+    kde_samples, resampled = sample_from_data(real_service_times, 1000)
+    ```""")
 
     # Tips and Best Practices
     st.markdown("""
@@ -467,41 +467,41 @@ kde_samples, resampled = sample_from_data(real_service_times, 1000)
     """, unsafe_allow_html=True)
 
     st.markdown("""```python
-# פונקציות עזר שימושיות
+    # פונקציות עזר שימושיות
 
-def clip_and_validate_times(samples, min_time=2, max_time=15):
-    """וידוא שזמני ההכנה הגיוניים"""
-    clipped = np.clip(samples, min_time, max_time)
-    return clipped
+    def clip_and_validate_times(samples, min_time=2, max_time=15):
+        """וידוא שזמני ההכנה הגיוניים"""
+        clipped = np.clip(samples, min_time, max_time)
+        return clipped
 
-def add_random_variation(samples, variation_percent=10):
-    """הוספת שונות אקראית לזמני ההכנה"""
-    variation = samples * (variation_percent/100) * np.random.uniform(-1, 1, len(samples))
-    return samples + variation
+    def add_random_variation(samples, variation_percent=10):
+        """הוספת שונות אקראית לזמני ההכנה"""
+        variation = samples * (variation_percent/100) * np.random.uniform(-1, 1, len(samples))
+        return samples + variation
 
-def generate_service_times(distribution_type, size, **params):
-    """פונקציה מרכזית לדגימת זמני שירות"""
-    if distribution_type == 'normal':
-        samples = np.random.normal(params['mu'], params['sigma'], size)
-    elif distribution_type == 'exponential':
-        samples = np.random.exponential(1/params['lambda'], size)
-    elif distribution_type == 'composite':
-        samples = sample_composite(size)
-    
-    # וידוא זמנים הגיוניים והוספת שונות
-    samples = clip_and_validate_times(samples)
-    samples = add_random_variation(samples)
-    
-    return samples
+    def generate_service_times(distribution_type, size, **params):
+        """פונקציה מרכזית לדגימת זמני שירות"""
+        if distribution_type == 'normal':
+            samples = np.random.normal(params['mu'], params['sigma'], size)
+        elif distribution_type == 'exponential':
+            samples = np.random.exponential(1/params['lambda'], size)
+        elif distribution_type == 'composite':
+            samples = sample_composite(size)
+        
+        # וידוא זמנים הגיוניים והוספת שונות
+        samples = clip_and_validate_times(samples)
+        samples = add_random_variation(samples)
+        
+        return samples
 
-# דוגמה לשימוש:
-service_times = generate_service_times(
-    distribution_type='normal',
-    size=1000,
-    mu=8,
-    sigma=1
-)
-```""")
+    # דוגמה לשימוש:
+    service_times = generate_service_times(
+        distribution_type='normal',
+        size=1000,
+        mu=8,
+        sigma=1
+    )
+    ```""")
 
     return st.session_state.selected_sampling
 
