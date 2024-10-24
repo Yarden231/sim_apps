@@ -26,7 +26,8 @@ def show():
     # Example course simulation section
     st.subheader("דוגמת הקורס: The Busy Food Truck")
     st.write("""
-    ###### ברוכים הבאים לאפליקציה המדמה את הפעילות של משאית אוכל עמוסה ומבוקשת! בסימולציה זו, תגלו כיצד זרימת לקוחות, ניהול תהליכי הזמנות, הכנת ארוחות ואיסוף משפיעים על הביצועים הכוללים של המערכת.
+    ###### ברוכים הבאים לאפליקציה המדמה את הפעילות של משאית אוכל עמוסה ומבוקשת! 
+    ###### בסימולציה זו, תגלו כיצד זרימת לקוחות, ניהול תהליכי הזמנות, הכנת ארוחות ואיסוף משפיעים על הביצועים הכוללים של המערכת.
     """)
     image= plt.imread("food_track_image.jpg")
     st.image(image, caption=None, width=None, use_column_width=None, clamp=False, channels="RGB", output_format="auto")
