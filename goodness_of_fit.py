@@ -708,7 +708,7 @@ def show():
             </ul>
         </div>
     """, unsafe_allow_html=True)
-    display_samples(samples)
+    
     # Generate new samples
     if 'samples' not in st.session_state or st.button('יצירת מדגם חדש'):
         samples, dist_info = generate_service_times()
