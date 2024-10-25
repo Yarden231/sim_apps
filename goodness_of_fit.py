@@ -128,8 +128,8 @@ def estimate_parameters(samples, distribution):
     """Enhanced parameter estimation with confidence intervals and visual explanation."""
     st.markdown("""
         <div class="custom-card rtl-content">
-            <h3 class="section-header">אמידת פרמטרים</h3>
-            <p>להלן תוצאות אמידת הפרמטרים בשיטת Maximum Likelihood:</p>
+            <h3 class="section-header">אמידת פרמטרים לסימולציה</h3>
+            <p>כדי לייצר זמני הכנה מציאותיים בסימולציה, נאמוד את הפרמטרים של ההתפלגות הנבחרת:</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -440,7 +440,12 @@ def plot_likelihood(samples, distribution):
         st.pyplot(fig)
 
 def perform_goodness_of_fit(samples, distribution, params):
-
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">בדיקת התאמת המודל</h3>
+            <p>לפני שנשתמש במודל בסימולציה, חשוב לוודא שהוא אכן מתאר היטב את המציאות במשאית המזון שלנו. נבצע מבחנים סטטיסטיים כדי לבדוק את מידת ההתאמה:</p>
+        </div>
+    """, unsafe_allow_html=True)
     """Improved goodness of fit testing with corrected hypothesis testing."""
     
     # Calculate number of bins using Freedman-Diaconis rule
@@ -560,6 +565,22 @@ def perform_goodness_of_fit(samples, distribution, params):
     ax.legend()
     
     st.pyplot(fig)
+
+    show_simulation_next_steps()
+
+def show_simulation_next_steps():
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">השלב הבא: בניית הסימולציה 🎮</h3>
+            <p>כעת כשיש לנו מודל סטטיסטי מדויק לזמני ההכנה, נוכל:</p>
+            <ul class="custom-list">
+                <li>לייצר זמני הכנה מציאותיים בסימולציה</li>
+                <li>לבדוק תרחישים שונים של עומס במשאית</li>
+                <li>לבחון את ההשפעה של שינויים בתהליך העבודה</li>
+                <li>לקבל החלטות מבוססות נתונים לשיפור היעילות</li>
+            </ul>
+        </div>
+    """, unsafe_allow_html=True)
 
 def show():
     set_rtl()
