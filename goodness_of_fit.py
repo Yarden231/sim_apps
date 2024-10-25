@@ -708,13 +708,15 @@ def show():
             </ul>
         </div>
     """, unsafe_allow_html=True)
-    
+    display_samples(samples)
     # Generate new samples
     if 'samples' not in st.session_state or st.button('יצירת מדגם חדש'):
         samples, dist_info = generate_service_times()
         st.session_state.samples = samples
         st.session_state.dist_info = dist_info
         
+            # Display the samples
+    
         st.markdown(f"""
             <div class="info-box rtl-content">
                 <p>התפלגות אמיתית (למטרות בדיקה): {dist_info['type']}</p>
@@ -748,8 +750,7 @@ def show():
         np.median(samples)
     ), unsafe_allow_html=True)
     
-    # Display the samples
-    display_samples(samples)
+
 
     # Analysis section
     st.markdown("""
@@ -815,7 +816,7 @@ def show():
         params = estimate_parameters(samples, distribution_choice)
         plot_likelihood(samples, distribution_choice)
         perform_goodness_of_fit(samples, distribution_choice, params)
-        
+
 # To show the app, call the show() function
 if __name__ == "__main__":
     show()
