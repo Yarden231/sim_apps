@@ -126,8 +126,8 @@ def display_samples(samples):
     """Display the first few samples and a simple plot of all samples."""
     st.markdown("""
         <div class="custom-card rtl-content">
-            <h3 class="section-header">הצגת המדגם</h3>
-            <p>להלן מדגם מייצג של זמני ההכנה שנמדדו:</p>
+            <h3 class="section-header"> דגימות זמני ההכנה בעמדה</h3>
+            <p> להלן מדגם מייצג של זמני ההכנה כפי שנמדדו על ידי עובד מסור של המשאית:</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -708,7 +708,7 @@ def show():
             </ul>
         </div>
     """, unsafe_allow_html=True)
-    display_samples(samples)
+    
     # Generate new samples
     if 'samples' not in st.session_state or st.button('יצירת מדגם חדש'):
         samples, dist_info = generate_service_times()
@@ -726,7 +726,7 @@ def show():
         """, unsafe_allow_html=True)
     
     samples = st.session_state.samples
-    
+    display_samples(samples)
     # Display summary statistics with business context
     st.markdown("""
         <div class="info-box rtl-content">
