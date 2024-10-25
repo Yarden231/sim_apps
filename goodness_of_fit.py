@@ -7,6 +7,103 @@ import pandas as pd
 from utils import set_rtl, set_ltr_sliders
 from styles import get_custom_css
 
+def show_business_context():
+    """Display the business context and importance of the analysis."""
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">ניתוח זמני ההכנה במשאית המזון 🚚</h3>
+            <p>
+                כדי לייעל את פעילות משאית המזון שלנו, עלינו להבין תחילה את דפוסי זמני ההכנה של המנות.
+                המטרה היא לבנות מודל סטטיסטי מדויק שישמש אותנו בהמשך לסימולציה של פעילות המשאית.
+            </p>
+        </div>
+        
+        <div class="info-box rtl-content">
+            <h4>למה זה חשוב?</h4>
+            <ul class="custom-list">
+                <li>🎯 נוכל לחזות טוב יותר את זמני ההמתנה של הלקוחות</li>
+                <li>👥 נוכל לתכנן טוב יותר את מספר העובדים הנדרש בכל משמרת</li>
+                <li>⚡ נוכל לזהות הזדמנויות לייעול תהליך ההכנה</li>
+                <li>📊 נוכל לבדוק תרחישים שונים בסימולציה לפני יישומם בשטח</li>
+            </ul>
+        </div>
+        
+        <div class="custom-card rtl-content">
+            <h4>תהליך הניתוח:</h4>
+            <ol class="custom-list">
+                <li>1️⃣ איסוף וניתוח ראשוני של נתוני זמני ההכנה</li>
+                <li>2️⃣ זיהוי דפוסים והתפלגויות אפשריות</li>
+                <li>3️⃣ התאמת מודל סטטיסטי לנתונים</li>
+                <li>4️⃣ בדיקת טיב ההתאמה של המודל</li>
+            </ol>
+        </div>
+    """, unsafe_allow_html=True)
+
+def generate_service_times(size=1000, distribution_type=None):
+    """Generate realistic food preparation times."""
+    np.random.seed(int(pd.Timestamp.now().timestamp()))
+    
+    if distribution_type is None:
+        distribution_type = np.random.choice(['normal', 'uniform', 'exponential', 'mixture'])
+    
+    def scale_times(times, min_time=2, max_time=15):
+        """Scale times to realistic food preparation times (2-15 minutes)"""
+        return (times - np.min(times)) * (max_time - min_time) / (np.max(times) - np.min(times)) + min_time
+    
+    if distribution_type == 'normal':
+        # Normal distribution for standard menu items
+        mu = np.random.uniform(7, 9)  # average prep time
+        sigma = np.random.uniform(1, 2)  # variation in prep time
+        samples = np.random.normal(mu, sigma, size)
+        samples = scale_times(samples)
+        dist_info = {
+            'type': 'Normal',
+            'description': 'מתאים למנות סטנדרטיות עם זמן הכנה קבוע יחסית',
+            'params': {'זמן ממוצע': f"{mu:.1f} דקות", 'סטיית תקן': f"{sigma:.1f} דקות"}
+        }
+        
+    elif distribution_type == 'uniform':
+        # Uniform distribution for simple items
+        a = np.random.uniform(2, 5)
+        b = np.random.uniform(10, 15)
+        samples = np.random.uniform(a, b, size)
+        dist_info = {
+            'type': 'Uniform',
+            'description': 'מתאים למנות פשוטות עם זמן הכנה גמיש',
+            'params': {'זמן מינימלי': f"{a:.1f} דקות", 'זמן מקסימלי': f"{b:.1f} דקות"}
+        }
+        
+    elif distribution_type == 'exponential':
+        # Exponential for rush orders or complex items
+        lambda_param = np.random.uniform(0.15, 0.25)
+        samples = np.random.exponential(1/lambda_param, size)
+        samples = scale_times(samples)
+        dist_info = {
+            'type': 'Exponential',
+            'description': 'מתאים למנות מורכבות או הזמנות בשעות עומס',
+            'params': {'קצב שירות': f"{lambda_param:.2f} לקוחות לדקה"}
+        }
+        
+    else:  # mixture
+        # Mix of regular and special orders
+        prop_regular = np.random.uniform(0.6, 0.8)
+        n_regular = int(size * prop_regular)
+        n_special = size - n_regular
+        
+        regular_samples = np.random.normal(8, 1.5, n_regular)
+        special_samples = np.random.exponential(2, n_special) + 5
+        samples = np.concatenate([regular_samples, special_samples])
+        samples = scale_times(samples)
+        
+        dist_info = {
+            'type': 'Mixture',
+            'description': 'שילוב של מנות רגילות ומנות מיוחדות',
+            'params': {'אחוז מנות רגילות': f"{prop_regular*100:.0f}%"}
+        }
+    
+    samples = np.clip(samples, 2, 15)  # Ensure realistic preparation times
+    return samples, dist_info
+
 def generate_random_samples(sample_size):
     """Generate samples from a random distribution with random parameters."""
     distribution = np.random.choice(['normal', 'uniform', 'exponential'])
@@ -587,14 +684,33 @@ def show():
     set_ltr_sliders()
     st.markdown(get_custom_css(), unsafe_allow_html=True)
     
-    # Header section
+    # Header and business context
     st.markdown("""
         <div class="custom-header rtl-content">
-            <h1>ניתוח זמני שירות - עמדת הכנת המנות 👨‍🍳</h1>
-            <p>התאמת מודל סטטיסטי לזמני הכנת מנות במשאית</p>
+            <h1>ניתוח זמני שירות במשאית המזון 🚚</h1>
+            <p>התאמת מודל סטטיסטי לזמני הכנת המנות לצורך סימולציה וייעול</p>
         </div>
     """, unsafe_allow_html=True)
     
+    # Show business context
+    show_business_context()
+    
+    # Generate or load samples
+    if 'samples' not in st.session_state or st.button('יצירת מדגם חדש'):
+        samples, dist_info = generate_service_times()
+        st.session_state.samples = samples
+        st.session_state.dist_info = dist_info
+        
+        st.markdown(f"""
+            <div class="info-box rtl-content">
+                <h4>מידע על המדגם:</h4>
+                <p>{dist_info['description']}</p>
+                <p><strong>פרמטרים:</strong></p>
+                <ul>
+                    {' '.join(f'<li>{k}: {v}</li>' for k, v in dist_info['params'].items())}
+                </ul>
+            </div>
+        """, unsafe_allow_html=True)
     # Generate new samples
     if 'samples' not in st.session_state or st.button('יצירת מדגם חדש'):
         samples, dist_info = generate_service_times()
