@@ -684,40 +684,37 @@ def show():
     set_ltr_sliders()
     st.markdown(get_custom_css(), unsafe_allow_html=True)
     
-    # Header and business context
+    # Header section with business context
     st.markdown("""
         <div class="custom-header rtl-content">
-            <h1>ניתוח זמני שירות במשאית המזון 🚚</h1>
-            <p>התאמת מודל סטטיסטי לזמני הכנת המנות לצורך סימולציה וייעול</p>
+            <h1>ניתוח זמני שירות - עמדת הכנת המנות 👨‍🍳</h1>
+            <p>התאמת מודל סטטיסטי לזמני הכנת מנות במשאית</p>
         </div>
     """, unsafe_allow_html=True)
     
-    # Show business context
-    show_business_context()
+    # Business context explanation
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">מטרת הניתוח הסטטיסטי</h3>
+            <p>
+                כדי לבנות סימולציה מדויקת של פעילות משאית המזון, עלינו להבין תחילה את דפוסי זמני ההכנה של המנות.
+                דרך ניתוח הנתונים נוכל:
+            </p>
+            <ul class="custom-list">
+                <li>🎯 לחזות טוב יותר את זמני ההמתנה של הלקוחות</li>
+                <li>👥 לתכנן טוב יותר את מספר העובדים הנדרש בכל משמרת</li>
+                <li>⚡ לזהות הזדמנויות לייעול תהליך ההכנה</li>
+                <li>📊 לבדוק תרחישים שונים בסימולציה לפני יישומם בשטח</li>
+            </ul>
+        </div>
+    """, unsafe_allow_html=True)
     
-    # Generate or load samples
-    if 'samples' not in st.session_state or st.button('יצירת מדגם חדש'):
-        samples, dist_info = generate_service_times()
-        st.session_state.samples = samples
-        st.session_state.dist_info = dist_info
-        
-        st.markdown(f"""
-            <div class="info-box rtl-content">
-                <h4>מידע על המדגם:</h4>
-                <p>{dist_info['description']}</p>
-                <p><strong>פרמטרים:</strong></p>
-                <ul>
-                    {' '.join(f'<li>{k}: {v}</li>' for k, v in dist_info['params'].items())}
-                </ul>
-            </div>
-        """, unsafe_allow_html=True)
     # Generate new samples
     if 'samples' not in st.session_state or st.button('יצירת מדגם חדש'):
         samples, dist_info = generate_service_times()
         st.session_state.samples = samples
         st.session_state.dist_info = dist_info
         
-        # Add this for debugging/testing
         st.markdown(f"""
             <div class="info-box rtl-content">
                 <p>התפלגות אמיתית (למטרות בדיקה): {dist_info['type']}</p>
@@ -726,11 +723,12 @@ def show():
             </div>
         """, unsafe_allow_html=True)
     
-    # Display summary statistics
     samples = st.session_state.samples
+    
+    # Display summary statistics with business context
     st.markdown("""
         <div class="info-box rtl-content">
-            <h4>סטטיסטיקה תיאורית:</h4>
+            <h4>סטטיסטיקה תיאורית של זמני ההכנה:</h4>
             <ul class="custom-list">
                 <li>מספר מדידות: {:d}</li>
                 <li>זמן הכנה ממוצע: {:.2f} דקות</li>
@@ -739,6 +737,7 @@ def show():
                 <li>סטיית תקן: {:.2f} דקות</li>
                 <li>חציון: {:.2f} דקות</li>
             </ul>
+            <p>נתונים אלו מסייעים לנו להבין את טווח זמני ההכנה הטיפוסיים ואת מידת השונות בתהליך.</p>
         </div>
     """.format(
         len(samples),
@@ -749,42 +748,38 @@ def show():
         np.median(samples)
     ), unsafe_allow_html=True)
     
-    # Continue with the rest of your display_samples(), visualize_samples_and_qqplots(),
-    # and other visualization functions...
-
-    # Display the raw samples
+    # Display the samples
     display_samples(samples)
 
-    # Add a separator before the QQ plots
+    # Analysis section
     st.markdown("""
         <div class="custom-card rtl-content">
             <h3 class="section-header">ניתוח התפלגות הנתונים</h3>
-            <p>כעת נבחן את התפלגות הנתונים באמצעות כלים סטטיסטיים:</p>
+            <p>כעת נבחן את התפלגות הנתונים באמצעות כלים סטטיסטיים כדי לבחור את המודל המתאים ביותר לסימולציה:</p>
         </div>
     """, unsafe_allow_html=True)
 
-    # Continue with existing code for QQ plots and rest of the analysis...
     visualize_samples_and_qqplots(samples)
 
-    # Distribution selection
+    # Distribution selection with business context
     st.markdown("""
         <div class="custom-card rtl-content">
             <h3 class="section-header">בחירת התפלגות מתאימה</h3>
             <p>
-                לפי הגרפים שראינו, עלינו לבחור את ההתפלגות שמתאימה ביותר לתיאור זמני ההכנה.
-                ההתפלגויות הנפוצות לתיאור זמני שירות הן:
+                בהתבסס על הניתוח הגרפי, נבחר את ההתפלגות שמתארת בצורה הטובה ביותר את זמני ההכנה במשאית.
+                כל התפלגות מתאימה לתרחיש עסקי שונה:
             </p>
         </div>
     """, unsafe_allow_html=True)
 
-    # Create three columns for the distribution buttons
+    # Create three columns for the distribution buttons with business context
     col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown("""
             <div class="metric-container rtl-content">
                 <h4>התפלגות נורמלית</h4>
-                <p>מתאימה לזמנים סימטריים סביב הממוצע</p>
+                <p>מתאימה למנות סטנדרטיות עם זמן הכנה קבוע יחסית</p>
             </div>
         """, unsafe_allow_html=True)
         normal_button = st.button("בחר התפלגות נורמלית")
@@ -793,7 +788,7 @@ def show():
         st.markdown("""
             <div class="metric-container rtl-content">
                 <h4>התפלגות אחידה</h4>
-                <p>מתאימה כשכל הזמנים באותה סבירות</p>
+                <p>מתאימה למנות פשוטות עם זמן הכנה גמיש</p>
             </div>
         """, unsafe_allow_html=True)
         uniform_button = st.button("בחר התפלגות אחידה")
@@ -802,7 +797,7 @@ def show():
         st.markdown("""
             <div class="metric-container rtl-content">
                 <h4>התפלגות מעריכית</h4>
-                <p>מתאימה לזמני שירות מוטים</p>
+                <p>מתאימה למנות מורכבות או הזמנות בשעות עומס</p>
             </div>
         """, unsafe_allow_html=True)
         exp_button = st.button("בחר התפלגות מעריכית")
@@ -817,33 +812,10 @@ def show():
         distribution_choice = 'Exponential'
 
     if distribution_choice:
-        st.markdown(f"""
-            <div class="info-box rtl-content">
-                <p>בחרת את ההתפלגות: {distribution_choice}</p>
-            </div>
-        """, unsafe_allow_html=True)
-
-        # Maximum Likelihood Estimation
-        st.markdown("""
-            <div class="custom-card rtl-content">
-                <h3 class="section-header">אמידת פרמטרים</h3>
-                <p>נשתמש בשיטת Maximum Likelihood כדי למצוא את הפרמטרים המתאימים ביותר להתפלגות שנבחרה:</p>
-            </div>
-        """, unsafe_allow_html=True)
-        
         params = estimate_parameters(samples, distribution_choice)
         plot_likelihood(samples, distribution_choice)
-
-        # Goodness of fit tests
-        st.markdown("""
-            <div class="custom-card rtl-content">
-                <h3 class="section-header">בדיקת טיב ההתאמה</h3>
-                <p>נבצע מבחנים סטטיסטיים כדי לבדוק כמה טוב ההתפלגות שבחרנו מתאימה לנתונים:</p>
-            </div>
-        """, unsafe_allow_html=True)
-        
         perform_goodness_of_fit(samples, distribution_choice, params)
-
+        
 # To show the app, call the show() function
 if __name__ == "__main__":
     show()
