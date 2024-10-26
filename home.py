@@ -14,7 +14,7 @@ def create_order_dynamics_section():
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.markdown("<div style='text-align: center; font-weight: bold;'>סוג לקוח</div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: right; font-weight: bold;'>סוג לקוח</div>", unsafe_allow_html=True)
         st.markdown("""
         A סוג<br>
         B סוג<br>
@@ -22,7 +22,7 @@ def create_order_dynamics_section():
         """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("<div style='text-align: center; font-weight: bold;'>אחוז מהלקוחות</div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: right; font-weight: bold;'>אחוז מהלקוחות</div>", unsafe_allow_html=True)
         st.markdown("""
         50%<br>
         25%<br>
@@ -30,7 +30,7 @@ def create_order_dynamics_section():
         """, unsafe_allow_html=True)
     
     with col3:
-        st.markdown("<div style='text-align: center; font-weight: bold;'>זמן הזמנה</div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: right; font-weight: bold;'>זמן הזמנה</div>", unsafe_allow_html=True)
         st.markdown("""
         אחיד (3-4 דקות) - המהיר ביותר<br>
         משולש (4-6 דקות) - בינוני<br>
@@ -41,24 +41,35 @@ def create_meal_prep_section():
     st.markdown("""
         <div class="custom-card rtl-content">
             <h3 class="section-header">3. פרטי הכנת הארוחות 👨‍🍳</h3>
-            
-            <div class="info-box">
-                <h4>זמני בישול סטוכסטיים:</h4>
-                <ul class="custom-list">
-                    <li>התפלגות נורמלית</li>
-                    <li>ממוצע (μ): 5 דקות - הזמן הממוצע להכנת מנה</li>
-                    <li>סטיית תקן (σ): דקה אחת - שונות בזמני ההכנה</li>
-                </ul>
-            </div>
         </div>
     """, unsafe_allow_html=True)
 
+    # Stochastic cooking times using columns
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("<div style='text-align: center; font-weight: bold;'>מאפיין</div>", unsafe_allow_html=True)
+        st.markdown("""
+        התפלגות<br>
+        ממוצע (μ)<br>
+        סטיית תקן (σ)
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("<div style='text-align: center; font-weight: bold;'>ערך</div>", unsafe_allow_html=True)
+        st.markdown("""
+        נורמלית<br>
+        5 דקות - הזמן הממוצע להכנת מנה<br>
+        דקה אחת - שונות בזמני ההכנה
+        """, unsafe_allow_html=True)
+
+    # Batch probabilities table
     st.markdown("<h4 style='text-align: right;'>הסתברויות לפי גודל המנה:</h4>", unsafe_allow_html=True)
     
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.markdown("<div style='text-align: right; font-weight: bold;'>גודל מנה</div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center; font-weight: bold;'>גודל מנה</div>", unsafe_allow_html=True)
         st.markdown("""
         מנה בודדת<br>
         זוג מנות<br>
@@ -66,7 +77,7 @@ def create_meal_prep_section():
         """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("<div style='text-align: right; font-weight: bold;'>הסתברות</div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: center; font-weight: bold;'>הסתברות</div>", unsafe_allow_html=True)
         st.markdown("""
         20%<br>
         50%<br>
