@@ -1,6 +1,43 @@
 # story.py
 import streamlit as st
-from styles import get_custom_css
+#from styles import get_custom_css
+
+def get_custom_css():
+    return """
+    <style>
+        /* Existing styles ... */
+        
+        /* RTL Support */
+        .rtl-content {
+            direction: rtl;
+            text-align: right;
+        }
+        
+        /* Table styles */
+        .dataframe {
+            direction: rtl;
+            text-align: right;
+        }
+        
+        .dataframe th {
+            text-align: right;
+            font-weight: bold;
+        }
+        
+        /* Info box styling */
+        .stInfo {
+            direction: rtl;
+            text-align: right;
+        }
+        
+        /* Header styling */
+        h1, h2, h3, h4, h5, h6 {
+            direction: rtl;
+            text-align: right;
+        }
+    </style>
+    """
+
 
 def show():
     # Apply custom CSS
