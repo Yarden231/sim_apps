@@ -3,6 +3,97 @@ import streamlit as st
 import matplotlib.pyplot as plt
 from styles import get_custom_css
 
+# Order Station Dynamics table
+def create_order_dynamics_section():
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">2. דינמיקת עמדת ההזמנות 📝</h3>
+            <p>לקוחות עם דחיפויות והעדפות שונות משפיעים על זמני עיבוד ההזמנות:</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # Create the table using columns for better alignment
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("<div style='text-align: center; font-weight: bold;'>סוג לקוח</div>", unsafe_allow_html=True)
+        st.markdown("""
+        A סוג<br>
+        B סוג<br>
+        C סוג
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("<div style='text-align: center; font-weight: bold;'>אחוז מהלקוחות</div>", unsafe_allow_html=True)
+        st.markdown("""
+        50%<br>
+        25%<br>
+        25%
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("<div style='text-align: center; font-weight: bold;'>זמן הזמנה</div>", unsafe_allow_html=True)
+        st.markdown("""
+        אחיד (3-4 דקות) - המהיר ביותר<br>
+        משולש (4-6 דקות) - בינוני<br>
+        קבוע (10 דקות) - האיטי ביותר
+        """, unsafe_allow_html=True)
+
+# Meal Preparation Details table
+def create_meal_prep_section():
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">3. פרטי הכנת הארוחות 👨‍🍳</h3>
+            
+            <div class="info-box">
+                <h4>זמני בישול סטוכסטיים:</h4>
+                <ul class="custom-list">
+                    <li>התפלגות נורמלית</li>
+                    <li>ממוצע (μ): 5 דקות - הזמן הממוצע להכנת מנה</li>
+                    <li>סטיית תקן (σ): דקה אחת - שונות בזמני ההכנה</li>
+                </ul>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # Create the batch probabilities table using columns
+    st.markdown("<h4 style='text-align: right;'>הסתברויות לפי גודל המנה:</h4>", unsafe_allow_html=True)
+    
+    col1, col2, col3, col4 = st.columns(4)
+    
+    with col1:
+        st.markdown("<div style='text-align: center; font-weight: bold;'>גודל מנה</div>", unsafe_allow_html=True)
+        st.markdown("""
+        מנה בודדת<br>
+        זוג מנות<br>
+        שלוש מנות
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("<div style='text-align: center; font-weight: bold;'>הסתברות</div>", unsafe_allow_html=True)
+        st.markdown("""
+        20%<br>
+        50%<br>
+        30%
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("<div style='text-align: center; font-weight: bold;'>השפעה</div>", unsafe_allow_html=True)
+        st.markdown("""
+        שירות מהיר ואישי<br>
+        איזון בין מהירות ואיכות<br>
+        יעילות גבוהה
+        """, unsafe_allow_html=True)
+    
+    with col4:
+        st.markdown("<div style='text-align: center; font-weight: bold;'>סיכוי לבישול חסר</div>", unsafe_allow_html=True)
+        st.markdown("""
+        0%<br>
+        0%<br>
+        30%
+        """, unsafe_allow_html=True)
+
+
 def show():
     # Apply custom CSS
     st.markdown(get_custom_css(), unsafe_allow_html=True)
@@ -54,85 +145,9 @@ def show():
         </div>
     """, unsafe_allow_html=True)
 
-    # Order Station section
-    st.markdown("""
-        <div class="custom-card rtl-content">
-            <h3 class="section-header">2. דינמיקת עמדת ההזמנות 📝</h3>
-            <p>לקוחות מגיעים עם דחיפויות והעדפות שונות המשפיעים על זמני עיבוד ההזמנות:</p>
-            
-            <div class="metric-container">
-                <table class="styled-table">
-                    <tr>
-                        <th>סוג לקוח</th>
-                        <th>אחוז מהלקוחות</th>
-                        <th>זמן הזמנה</th>
-                    </tr>
-                    <tr>
-                        <td>סוג A</td>
-                        <td>50%</td>
-                        <td>אחיד (3-4 דקות) - המהיר ביותר</td>
-                    </tr>
-                    <tr>
-                        <td>סוג B</td>
-                        <td>25%</td>
-                        <td>משולש (4-6 דקות) - בינוני</td>
-                    </tr>
-                    <tr>
-                        <td>סוג C</td>
-                        <td>25%</td>
-                        <td>קבוע (10 דקות) - האיטי ביותר</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Meal Preparation section
-    st.markdown("""
-        <div class="custom-card rtl-content">
-            <h3 class="section-header">3. פרטי הכנת הארוחות 👨‍🍳</h3>
-            <p>השפים במשאית האוכל מכינים ארוחות במנות, דבר המשפיע הן על המהירות והן על איכות השירות.</p>
-            
-            <div class="info-box">
-                <h4>זמני בישול סטוכסטיים:</h4>
-                <ul class="custom-list">
-                    <li>התפלגות נורמלית</li>
-                    <li>ממוצע (μ): 5 דקות - זמן ממוצע להכנת מנה</li>
-                    <li>סטיית תקן (σ): דקה אחת - משקף את השונות בזמני הבישול</li>
-                </ul>
-            </div>
-
-            <div class="metric-container">
-                <h4>הסתברויות לפי גודל המנה:</h4>
-                <table class="styled-table">
-                    <tr>
-                        <th>גודל מנה</th>
-                        <th>הסתברות</th>
-                        <th>השפעה</th>
-                        <th>סיכוי לבישול חסר</th>
-                    </tr>
-                    <tr>
-                        <td>מנה בודדת</td>
-                        <td>20%</td>
-                        <td>שירות מהיר ואישי</td>
-                        <td>0%</td>
-                    </tr>
-                    <tr>
-                        <td>זוג מנות</td>
-                        <td>50%</td>
-                        <td>איזון בין מהירות ואיכות</td>
-                        <td>0%</td>
-                    </tr>
-                    <tr>
-                        <td>שלוש מנות</td>
-                        <td>30%</td>
-                        <td>יעילות גבוהה</td>
-                        <td>30%</td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
+    # Add the fixed table sections
+    create_order_dynamics_section()
+    create_meal_prep_section()
 
     # Pickup and Customer Patience section
     st.markdown("""
