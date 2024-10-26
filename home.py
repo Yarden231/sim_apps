@@ -183,6 +183,16 @@ def show():
             </ul>
         </div>
     """, unsafe_allow_html=True)
+
+        # Customer Patience section
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">להלן תרשים אירועים של משאית המזון:</h3>
+        </div>
+    """, unsafe_allow_html=True)
+
+    image = plt.imread("event_diagram.jpg")
+    st.image(image, use_column_width=True)
     
     # Quote section
     st.markdown("""
