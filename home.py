@@ -191,7 +191,7 @@ def show():
         </div>
     """, unsafe_allow_html=True)
 
-    image = plt.imread("event_diagram.jpg")
+    image = plt.imread("event_diagram.png")
     st.image(image, use_column_width=True)
     
     # Quote section
