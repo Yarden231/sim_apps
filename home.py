@@ -158,20 +158,16 @@ def show():
     # Pickup Time section
     st.markdown("""
         <div class="custom-card rtl-content">
-            <h3 class="section-header">4. זמן איסוף 🕒</h3>
-            <div class="metric-container">
+            <h3 class="section-header">5. זמן איסוף 🕒</h3>
                 <p>התפלגות אחידה: זמני האיסוף נעים בין 2 ל-4 דקות</p>
-            </div>
         </div>
     """, unsafe_allow_html=True)
     
     # Customer Patience section
     st.markdown("""
         <div class="custom-card rtl-content">
-            <h3 class="section-header">5. סבלנות הלקוחות 😊</h3>
-            <div class="info-box">
+            <h3 class="section-header">6. סבלנות הלקוחות 😊</h3>
                 <p>הסתברות לעזיבה: קיים סיכוי של 10% שלקוחות השוהים במערכת שעתיים או יותר יחליטו לעזוב</p>
-            </div>
         </div>
     """, unsafe_allow_html=True)
     
