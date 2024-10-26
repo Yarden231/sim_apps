@@ -726,7 +726,7 @@ def show():
     # Display summary statistics with business context
     st.markdown("""
         <div class="info-box rtl-content">
-            <h4>שנמדדו סטטיסטיקה תיאורית של דגימות זמני ההכנה:</h4>
+            <h4> סטטיסטיקה תיאורית של דגימות זמני ההכנה שנמדדו:</h4>
             <ul class="custom-list">
                 <li>מספר מדידות: {:d}</li>
                 <li>זמן הכנה ממוצע: {:.2f} דקות</li>
