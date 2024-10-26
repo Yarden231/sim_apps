@@ -58,7 +58,7 @@ def create_meal_prep_section():
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.markdown("<div style='text-align: center; font-weight: bold;'>גודל מנה</div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: right; font-weight: bold;'>גודל מנה</div>", unsafe_allow_html=True)
         st.markdown("""
         מנה בודדת<br>
         זוג מנות<br>
@@ -66,7 +66,7 @@ def create_meal_prep_section():
         """, unsafe_allow_html=True)
     
     with col2:
-        st.markdown("<div style='text-align: center; font-weight: bold;'>הסתברות</div>", unsafe_allow_html=True)
+        st.markdown("<div style='text-align: right; font-weight: bold;'>הסתברות</div>", unsafe_allow_html=True)
         st.markdown("""
         20%<br>
         50%<br>
