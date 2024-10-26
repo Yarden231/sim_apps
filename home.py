@@ -1,4 +1,4 @@
-# home.py
+# story.py
 import streamlit as st
 import matplotlib.pyplot as plt
 from styles import get_custom_css
@@ -10,73 +10,132 @@ def show():
     # Main header
     st.markdown("""
         <div class="custom-header rtl-content">
-            <h1>🚚 The Busy Food Truck</h1>
-            <p style="font-size: 1.2rem;">    ברוכים הבאים לסיפורו של עסק פורח ומלא חיים – משאית האוכל הנוצצת. בדוגמה זו נחקור את האתגרים היומיומיים של משאית אוכל מבוקשת, 
-            בה מתחלפים לקוחות, נרשמות הזמנות ומתבצעת הכנה מרובת שלבים. בעזרת כלים מעולם הסימולציה, תלמדו כיצד אפשר לשפר את יעילות המשאית, 
-            לנהל זרימת לקוחות בצורה מיטבית, ולבחון את השפעת השינויים במערך.
+            <h1>🚚 משאית האוכל העמוסה</h1>
+            <p style="font-size: 1.2rem;">
+                צאו למסע מרתק אל תוך פעילות היומיום של "משאית האוכל העמוסה".
+                סימולציה אינטראקטיבית זו מבוססת על תורת התורים והתפלגויות הסתברותיות, המדמה את האתגרים של ניהול משאית אוכל רחוב במציאות.
             </p>
-
         </div>
     """, unsafe_allow_html=True)
     
-    # Main content in two columns
-    col1, col2 = st.columns([3, 2])
-    
-    with col1:
-        st.markdown("""
-            <div class="custom-card rtl-content">
-                <h3 class="section-header">ברוכים הבאים!</h3>
-                <p>מערכת השירות של משאית המזון כוללת שלושה עמדות שירות:</p>
-                <ul class="custom-list">
-                    <li>🎯 עמדת הזמנה</li>
-                    <li>👨‍🍳 עמדת הכנת מנות טעימות</li>
-                    <li>📦 עמדת אריזה והגשה ללקוחות הנלהבים</li>
-                </ul>
-            </div>
-            
-            <div class="info-box rtl-content">
-                <p>דרך עמודי האפליקציה, תגלו כיצד באמצעות סימולציה ממחושבת, ניתן לדמות ולנתח תהליכים של זרימת לקוחות ולהבין כיצד ניהול תהליכי הזמנות, הכנת ארוחות ואיסוף משפיעים על הביצועים הכוללים של המערכת.</p>
-            </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown('<div class="img-container rtl-content">', unsafe_allow_html=True)
-        try:
-            image = plt.imread("food_track_image.jpg")
-            st.image(image, use_column_width=True, caption="משאית המזון שלנו")
-        except:
-            st.info("תמונת משאית המזון לא נמצאה. אנא וודאו שהקובץ 'food_track_image.jpg' קיים בתיקייה.")
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Simulation goals section
+    # Main content
     st.markdown("""
         <div class="custom-card rtl-content">
-            <h3 class="section-header">מטרות הסימולציה</h3>
-            <div class="metric-container">
-                <ul class="custom-list">
-                    <li>📊 הבנת השפעת הפרמטרים השונים על חוויית הלקוח</li>
-                    <li>🔍 חקירת תרחישים שונים וניתוח ביצועים</li>
-                    <li>🧠 פיתוח הבנה עמוקה של מערכות מורכבות בתנאי אי-וודאות</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="custom-card rtl-content">
-            <h3 class="section-header">מטרות הקורס</h3>
-            <p>מטרת הקורס היא להקנות לסטודנטים את הכלים והידע הדרושים לבניית פרויקטי סימולציה בצורה פשוטה ומעשית.</p>
-            <div class="metric-container">
-                <h4>נושאי הקורס העיקריים:</h4>
-                <ul class="custom-list">
-                    <li>🔄 מידול המערכת</li>
-                    <li>📥 יצירת קלט לסימולציה</li>
-                    <li>🚀 הרצת ניסוי</li>
-                    <li>📊 ניתוח פלט ותוצאות</li>
-                </ul>
-            </div>
-        </div>
-        
-        <div class="info-box rtl-content">
-            <p style="font-style: italic;">"הדרך הטובה ביותר לחזות את העתיד היא לסמלץ אותו."</p>
-            <p style="text-align: right; color: #666;">- לא ידוע</p> <!-- Changed to right alignment -->
+            <h3 class="section-header">סקירת הסימולציה</h3>
+            <p>צללו ליום טיפוסי ב"משאית האוכל העמוסה", תוך התמקדות באינטראקציות מגוונות עם לקוחות ודינמיקת הכנת המזון.</p>
         </div>
     """, unsafe_allow_html=True)
+    
+    # Key Elements Section
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">אלמנטים מרכזיים בסימולציה</h3>
+            
+            <h4>1. הגעת לקוחות 👥</h4>
+            <ul class="custom-list">
+                <li>הגעות אקראיות: לקוחות מגיעים באופן ספונטני, נמשכים לתפריט המפתה</li>
+                <li>התפלגות מעריכית: מרווחי ההגעה ממוצעים כ-6 דקות, המכניסים אי-ודאות לתור</li>
+            </ul>
+
+            <h4>2. דינמיקת עמדת ההזמנות 📝</h4>
+            <div class="metric-container">
+                <p>לקוחות עם דחיפויות והעדפות שונות משפיעים על זמני עיבוד ההזמנות:</p>
+                <table class="custom-table">
+                    <tr>
+                        <th>סוג לקוח</th>
+                        <th>אחוז</th>
+                        <th>זמן הזמנה</th>
+                    </tr>
+                    <tr>
+                        <td>סוג A</td>
+                        <td>50%</td>
+                        <td>אחיד (3-4 דקות)</td>
+                    </tr>
+                    <tr>
+                        <td>סוג B</td>
+                        <td>25%</td>
+                        <td>משולש (4-6 דקות)</td>
+                    </tr>
+                    <tr>
+                        <td>סוג C</td>
+                        <td>25%</td>
+                        <td>קבוע (10 דקות)</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Meal Preparation Section
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h4>3. פרטי הכנת הארוחות 👨‍🍳</h4>
+            <p><strong>בישול במנות:</strong></p>
+            <div class="metric-container">
+                <ul class="custom-list">
+                    <li>השפים מכינים ארוחות במנות, המשפיעות על מהירות ואיכות השירות</li>
+                    <li>זמני בישול סטוכסטיים:</li>
+                    <ul>
+                        <li>התפלגות נורמלית</li>
+                        <li>ממוצע (μ): 5 דקות</li>
+                        <li>סטיית תקן (σ): דקה אחת</li>
+                    </ul>
+                </ul>
+            </div>
+
+            <div class="info-box">
+                <h4>הסתברויות לפי גודל המנה:</h4>
+                <table class="custom-table">
+                    <tr>
+                        <th>גודל מנה</th>
+                        <th>הסתברות</th>
+                        <th>השפעה</th>
+                        <th>סיכוי לבישול חסר</th>
+                    </tr>
+                    <tr>
+                        <td>מנה בודדת</td>
+                        <td>20%</td>
+                        <td>שירות מהיר ואישי</td>
+                        <td>0%</td>
+                    </tr>
+                    <tr>
+                        <td>זוג מנות</td>
+                        <td>50%</td>
+                        <td>איזון בין מהירות ואיכות</td>
+                        <td>0%</td>
+                    </tr>
+                    <tr>
+                        <td>שלוש מנות</td>
+                        <td>30%</td>
+                        <td>יעילות גבוהה</td>
+                        <td>30%</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Pickup and Customer Patience Section
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h4>4. זמן איסוף 🕒</h4>
+            <p>התפלגות אחידה: זמני האיסוף נעים בין 2 ל-4 דקות</p>
+
+            <h4>5. סבלנות הלקוחות 😊</h4>
+            <div class="info-box">
+                <p>הסתברות לעזיבה: קיים סיכוי של 10% שלקוחות השוהים במערכת שעתיים או יותר יחליטו לעזוב</p>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+    
+    # Conclusion Section
+    st.markdown("""
+        <div class="custom-card rtl-content">
+            <h3 class="section-header">התנסות וחקירה</h3>
+            <p>חוו את האתגרים התפעוליים והתרגשות ניהול משאית אוכל רחוב דרך הסימולציה האינטראקטיבית הזו. 
+               מוכנים לנווט בהמולה והשגשוג? בואו נתחיל את החוויה ב"משאית האוכל העמוסה"! 🚚🍔🌭🍟</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+if __name__ == "__main__":
+    show()
