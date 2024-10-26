@@ -722,18 +722,11 @@ def show():
     samples = st.session_state.samples
     display_samples(samples)
 
-    st.markdown(f"""
-    <div class="info-box rtl-content">
-        <p>התפלגות אמיתית (למטרות בדיקה): {dist_info['type']}</p>
-        {'<p>תת-סוג: ' + dist_info.get('subtype', 'N/A') + '</p>' if 'subtype' in dist_info else ''}
-        <p>פרמטרים: {dist_info['params']}</p>
-    </div>
-    """, unsafe_allow_html=True)
     
     # Display summary statistics with business context
     st.markdown("""
         <div class="info-box rtl-content">
-            <h4>סטטיסטיקה תיאורית של זמני ההכנה:</h4>
+            <h4>שנמדדו סטטיסטיקה תיאורית של דגימות זמני ההכנה:</h4>
             <ul class="custom-list">
                 <li>מספר מדידות: {:d}</li>
                 <li>זמן הכנה ממוצע: {:.2f} דקות</li>
@@ -754,6 +747,13 @@ def show():
     ), unsafe_allow_html=True)
     
 
+    st.markdown(f"""
+    <div class="info-box rtl-content">
+        <p>התפלגות אמיתית (למטרות בדיקה): {dist_info['type']}</p>
+        {'<p>תת-סוג: ' + dist_info.get('subtype', 'N/A') + '</p>' if 'subtype' in dist_info else ''}
+        <p>פרמטרים: {dist_info['params']}</p>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Analysis section
     st.markdown("""
