@@ -41,7 +41,7 @@ def create_meal_prep_section():
     st.markdown("""
         <div class="custom-card rtl-content">
             <h3 class="section-header">3. פרטי הכנת הארוחות 👨‍🍳</h3>
-            <p>הזמן שלוקח לשף המשאית להכין מנה מתפלג נורמלית עם הפרמטרים הבאים: :</p>
+            <p>הזמן שלוקח לשף המשאית להכין מנה מתפלג נורמלית עם הפרמטרים הבאים:</p>
         </div>
     """, unsafe_allow_html=True)
 
@@ -63,7 +63,12 @@ def create_meal_prep_section():
         """, unsafe_allow_html=True)
 
     # Batch probabilities table
-    st.markdown("<h4 style='text-align: right;'> לפי ההמזנות הקיימות השף יחליט האם לבצע את המנה הבא לבד או להכין כמה מנות יחד. אם הוא מכין כמה מנות יחד, זמן ההכנה יהיה יעיל יותר אך ישנה אפשרות שמרוב יעילות המנות יבושלו יתר על המידה ויהיה צורך להחליפם. התפלגות הבחירה של השף וההסתברות לבישול יתר נתונים בטבלה הבאה::</h4>", unsafe_allow_html=True)
+    st.markdown("""
+            <div class="custom-card rtl-content">
+                <h3 class="section-header">4. איחוד הזמנות ובישול יתר 👨‍🍳</h3>
+                <p> לפי ההמזנות הקיימות השף יחליט האם לבצע את המנה הבא לבד או להכין כמה מנות יחד. אם הוא מכין כמה מנות יחד, זמן ההכנה יהיה יעיל יותר אך ישנה אפשרות שמרוב יעילות המנות יבושלו יתר על המידה ויהיה צורך להחליפם. התפלגות הבחירה של השף וההסתברות לבישול יתר נתונים בטבלה הבאה:</p>
+            </div>
+        """, unsafe_allow_html=True)
     
     col1, col2, col3, col4 = st.columns(4)
     
