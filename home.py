@@ -7,12 +7,11 @@ def create_order_dynamics_section():
     st.markdown("""
         <div class="custom-card rtl-content">
             <h3 class="section-header">2. דינמיקת עמדת ההזמנות 📝</h3>
-            <p>הזמן שלוקח ללקחות שונים לבצע הזמנה תלוי בסוג הלקוח ומתפלג באופן הבא:</p>
-        </div>
+            <p>הזמן שלוקח ללקחות שונים לבצע הזמנה תלוי בסוג הלקוח ומתפלג באופן הבא:</p>     
+            </div>
     """, unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns(3)
-    
     with col1:
         st.markdown("<div style='text-align: right; font-weight: bold;'>סוג לקוח</div>", unsafe_allow_html=True)
         st.markdown("""
