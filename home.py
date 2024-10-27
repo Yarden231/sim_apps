@@ -69,7 +69,7 @@ def create_meal_prep_section():
             </div>
         """, unsafe_allow_html=True)
     
-    col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3, col4, col5 = st.columns(5)
     
     with col1:
         st.markdown("<div style='text-align: right; font-weight: bold;'>גודל מנה</div>", unsafe_allow_html=True)
@@ -78,8 +78,16 @@ def create_meal_prep_section():
         זוג מנות<br>
         שלוש מנות
         """, unsafe_allow_html=True)
-    
+
     with col2:
+        st.markdown("<div style='text-align: right; font-weight: bold;'>זמן הכנה</div>", unsafe_allow_html=True)
+        st.markdown("""
+        N(5,1)<br>
+        N(8,2)<br>
+        N(10,3)
+        """, unsafe_allow_html=True)
+    
+    with col3:
         st.markdown("<div style='text-align: right; font-weight: bold;'>הסתברות</div>", unsafe_allow_html=True)
         st.markdown("""
         20%<br>
@@ -87,7 +95,7 @@ def create_meal_prep_section():
         30%
         """, unsafe_allow_html=True)
     
-    with col3:
+    with col4:
         st.markdown("<div style='text-align: right; font-weight: bold;'>השפעה</div>", unsafe_allow_html=True)
         st.markdown("""
         שירות מהיר ואישי<br>
@@ -95,7 +103,7 @@ def create_meal_prep_section():
         יעילות גבוהה
         """, unsafe_allow_html=True)
     
-    with col4:
+    with col5:
         st.markdown("<div style='text-align: right; font-weight: bold;'>סיכוי לבישול יתר</div>", unsafe_allow_html=True)
         st.markdown("""
         0%<br>
